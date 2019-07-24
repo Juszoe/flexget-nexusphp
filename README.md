@@ -8,11 +8,13 @@ Flexget插件，增强对NexusPHP的过滤
 - python 3.X
 
 ## 安装插件
-将插件拷贝至配置文件夹下的plugins文件夹，例如：
+1. 下载插件 [nexusphp.py](https://github.com/Juszoe/flexget-nexusphp/releases/download/v0.1/nexusphp.py)
+2. 将插件拷贝至Flexget配置文件夹下的plugins文件夹，例如：
 ```
 ~/.flexget/plugins/  # Linux
 C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 ```
+
 ## 使用
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
 ``` yaml
@@ -55,17 +57,17 @@ flexget execute
 `注意：x为英文字母`
 ### seeders
 做种情况，包含字段`min` `max`。做种人数超出范围的，Flexget将不会下载
-#### min
+#### `min`
 数字，最小做种人数，默认不限制
-#### max
+#### `max`
 数字，最大做种人数，默认不限制
 ### leechers
 下载情况，包含字段`min` `max` `max_complete`。做种人数超出范围的，Flexget将不会下载
-#### min
+#### `min`
 数字，最小下载人数，默认不限制
-#### max
+#### `max`
 数字，最大下载人数，默认不限制
-### max_complete
+### `max_complete`
 小数，范围`0-1.0` 下载者中最大完成度，超过这个值将不下载，默认为1
 
 ## 完整配置示例
