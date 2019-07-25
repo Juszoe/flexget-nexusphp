@@ -62,7 +62,7 @@ flexget execute
 #### `max`
 数字，最大做种人数，默认不限制
 ### leechers
-下载情况，包含字段`min` `max` `max_complete`。做种人数超出范围的，Flexget将不会下载
+下载情况，包含字段`min` `max` `max_complete`。下载人数超出范围的，Flexget将不会下载
 #### `min`
 数字，最小下载人数，默认不限制
 #### `max`
