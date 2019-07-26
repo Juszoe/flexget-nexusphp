@@ -15,7 +15,7 @@ Flexget插件，增强对NexusPHP的过滤
 C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 ```
 3. 将插件拷贝至plugins
-4. 重启flexget
+4. 若启用了Web-UI或守护进程，则重启flexget重新加载配置
 
 ## 使用
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
