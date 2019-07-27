@@ -9,11 +9,13 @@ Flexget插件，增强对NexusPHP的过滤
 
 ## 安装插件
 1. 下载插件 [nexusphp.py](https://github.com/Juszoe/flexget-nexusphp/releases/download/v0.1/nexusphp.py)
-2. 将插件拷贝至Flexget配置文件夹下的plugins文件夹，例如：
+2. 在Flexget配置文件夹下新建plugins文件夹，例如：
 ```
 ~/.flexget/plugins/  # Linux
 C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 ```
+3. 将插件拷贝至plugins
+4. 若启用了Web-UI或守护进程，则重启flexget重新加载配置
 
 ## 使用
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
