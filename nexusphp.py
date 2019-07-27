@@ -127,22 +127,41 @@ class NexusPHP(object):
 
         def get_peers(table):
             peers = []
+            name_index = 0
+            connectable_index = 1
+            uploaded_index = 2
+            downloaded_index = 4
+            completed_index = 7
             for index, tr in enumerate(table.find_all('tr')):
-                if index != 0:
-                    try:
+                try:
+                    if index == 0:
                         tds = tr.find_all('td')
-                        peers.append({
-                            'name': tds[0].get_text(),
-                            'connectable': True if tds[1].get_text() != '是' else False,
-                            'uploaded': tds[2].get_text(),
-                            'downloaded': tds[4].get_text(),
-                            'completed': float(tds[7].get_text().strip('%')) / 100
-                            # 'completed': tds[7].get_text()
-                        })
-                    except IndexError:
-                        pass
-                    except ValueError:
-                        pass
+                        for i, td in enumerate(tds):
+                            text = td.get_text()
+                            if text == '用户' or text == '用戶':
+                                name_index = i
+                            elif text == '可连接' or text == '可連接':
+                                connectable_index = i
+                            elif text == '上传' or text == '上傳':
+                                uploaded_index = i
+                            elif text == '下载' or text == '下載':
+                                downloaded_index = i
+                            elif text == '完成':
+                                completed_index = i
+                    else:
+                            tds = tr.find_all('td')
+                            peers.append({
+                                'name': tds[name_index].get_text(),
+                                'connectable': True if tds[connectable_index].get_text() != '是' else False,
+                                'uploaded': tds[uploaded_index].get_text(),
+                                'downloaded': tds[downloaded_index].get_text(),
+                                'completed': float(tds[completed_index].get_text().strip('%')) / 100
+                                # 'completed': tds[7].get_text()
+                            })
+                except IndexError:
+                    pass
+                except ValueError as e:
+                    pass
             return peers
 
         soup = get_soup(peer_page.content)
@@ -154,9 +173,14 @@ class NexusPHP(object):
 
     @staticmethod
     def _get_info(task, link, cookie):
-        detail_page = task.requests.get(link, headers={'cookie': cookie})  # 详情
+        headers = {
+            'cookie': cookie,
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/75.0.3770.142 Safari/537.36'
+        }
+        detail_page = task.requests.get(link, headers=headers)  # 详情
         peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
-        peer_page = task.requests.get(peer_url, headers={'cookie': cookie})  # peer详情
+        peer_page = task.requests.get(peer_url, headers=headers)  # peer详情
         return NexusPHP.info_from_page(detail_page, peer_page)
 
 
