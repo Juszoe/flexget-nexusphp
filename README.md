@@ -3,8 +3,7 @@ Flexget插件，增强对NexusPHP的过滤
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - `注意：本插件为测试版，未经过完全的测试`
 - [站点支持列表](#site)
-# de
-s
+
 ## 运行环境
 - 已安装flexget
 - python 3.X [python2解决方案](#py2)
