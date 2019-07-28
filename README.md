@@ -2,13 +2,15 @@
 Flexget插件，增强对NexusPHP的过滤
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - `注意：本插件为测试版，未经过完全的测试`
-
+- [站点支持列表](#site)
+# de
+s
 ## 运行环境
 - 已安装flexget
-- python 3.X
+- python 3.X [python2解决方案](#py2)
 
 ## 安装插件
-1. 下载插件 [nexusphp.py](https://github.com/Juszoe/flexget-nexusphp/releases/download/v0.1/nexusphp.py)
+1. 下载插件 [nexusphp.py](https://github.com/Juszoe/flexget-nexusphp/releases)
 2. 在Flexget配置文件夹下新建plugins文件夹，例如：
 ```
 ~/.flexget/plugins/  # Linux
@@ -110,3 +112,20 @@ tasks:
         min: 20
     download: ~/flexget/torrents/
 ```
+
+## 常见问题
+#### 我的python版本是2.X如何使用？
+<span id="py2"></span>
+本插件只支持python 3.X版本，请卸载flexget后使用python3重装
+```bash
+pip uninstall flexget  # 卸载
+pip3 install flexget  # 使用pip3安装
+```
+#### 目前支持哪些站点
+<span id="site"></span>
+以下站点名使用别称或简称，欢迎反馈更多可用或不可用的站点
+1. 任何未修改关键结构的nexusphp站点
+2. 铂金家
+3. 馒头
+4. nice
+5. 菠萝

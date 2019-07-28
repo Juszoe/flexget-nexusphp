@@ -105,7 +105,10 @@ class NexusPHP(object):
                                              "For example: other_fields: - link")
                 futures.append(executor.submit(consider_entry, entry, link))
 
-        concurrent.futures.as_completed(futures)
+        for f in concurrent.futures.as_completed(futures):
+            exception = f.exception()
+            if exception:
+                raise exception
 
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
@@ -149,18 +152,17 @@ class NexusPHP(object):
                             elif text == '完成':
                                 completed_index = i
                     else:
-                            tds = tr.find_all('td')
-                            peers.append({
-                                'name': tds[name_index].get_text(),
-                                'connectable': True if tds[connectable_index].get_text() != '是' else False,
-                                'uploaded': tds[uploaded_index].get_text(),
-                                'downloaded': tds[downloaded_index].get_text(),
-                                'completed': float(tds[completed_index].get_text().strip('%')) / 100
-                                # 'completed': tds[7].get_text()
-                            })
+                        tds = tr.find_all('td')
+                        peers.append({
+                            'name': tds[name_index].get_text(),
+                            'connectable': True if tds[connectable_index].get_text() != '是' else False,
+                            'uploaded': tds[uploaded_index].get_text(),
+                            'downloaded': tds[downloaded_index].get_text(),
+                            'completed': float(tds[completed_index].get_text().strip('%')) / 100
+                        })
                 except IndexError:
                     pass
-                except ValueError as e:
+                except ValueError:
                     pass
             return peers
 
@@ -178,9 +180,13 @@ class NexusPHP(object):
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/75.0.3770.142 Safari/537.36'
         }
-        detail_page = task.requests.get(link, headers=headers)  # 详情
+        detail_page = task.requests.get(link, headers=headers, allow_redirects=False)  # 详情
         peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
-        peer_page = task.requests.get(peer_url, headers=headers)  # peer详情
+        peer_page = task.requests.get(peer_url, headers=headers, allow_redirects=False)  # peer详情
+
+        if detail_page.status_code == 302 or peer_page.status_code == 302:
+            raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
+
         return NexusPHP.info_from_page(detail_page, peer_page)
 
 
