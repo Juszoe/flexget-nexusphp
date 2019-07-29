@@ -89,7 +89,10 @@ class NexusPHP(object):
                 _entry.reject('%d is out of range of leecher' % len(leechers))  # 下载人数不匹配
                 return
 
-            max_complete = max(leechers, key=lambda x: x['completed'])['completed']
+            if len(leechers) != 0:
+                max_complete = max(leechers, key=lambda x: x['completed'])['completed']
+            else:
+                max_complete = 0
             if max_complete > config['leechers']['max_complete']:
                 _entry.reject('%f is more than max_complete' % max_complete)  # 最大完成度不匹配
                 return
@@ -107,7 +110,7 @@ class NexusPHP(object):
 
         for f in concurrent.futures.as_completed(futures):
             exception = f.exception()
-            if exception:
+            if isinstance(exception, plugin.PluginError):
                 raise exception
 
     @staticmethod
@@ -168,8 +171,14 @@ class NexusPHP(object):
 
         soup = get_soup(peer_page.content)
         tables = soup.find_all('table', limit=2)
-        seeders = get_peers(tables[0])
-        leechers = get_peers(tables[1])
+        try:
+            seeders = get_peers(tables[0])
+        except IndexError:
+            seeders = []
+        try:
+            leechers = get_peers(tables[1])
+        except IndexError:
+            leechers = []
 
         return discount, seeders, leechers
 
@@ -177,6 +186,7 @@ class NexusPHP(object):
     def _get_info(task, link, cookie):
         headers = {
             'cookie': cookie,
+            'accept-encoding': 'gzip, deflate',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/75.0.3770.142 Safari/537.36'
         }
