@@ -116,7 +116,7 @@ class NexusPHP(object):
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
     def info_from_page(detail_page, peer_page):
-        soup = get_soup(detail_page.content)
+        soup = get_soup(detail_page.content, 'html.parser')
         try:
             discount_class = soup.find('h1', id='top').b.font['class'][0]  # selector: '#top > b:nth-child(1) > font'
             discount_table = {
