@@ -22,21 +22,22 @@ C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
 ``` yaml
 nexusphp:
-  cookie: 'you_cookie'
-  discount:
+  cookie: 'you_cookie'  # 必填
+  discount:  # 优惠信息 选填
     - free
     - 2x
     - 2x50%
     - 2xfree
     - 50%
     - 30%
-  seeders:
+  seeders:  # 做种情况 选填
     min: 1
     max: 2
-  leechers:
+  leechers:  # 下载情况 选填
     min: 10
     max: 100
     max_complete: 0.8
+  hr: no  # 是否下载HR 选填
 ```
 2. 为rss的other_fields字段添加link属性
 ``` yaml
@@ -72,12 +73,14 @@ flexget execute
 数字，最大下载人数，默认不限制
 #### `max_complete`
 小数，范围`0-1.0` 下载者中最大完成度，超过这个值将不下载，默认为1
+### hr
+yes或no，是否下载HR，默认不考虑HR，即可能下载到HR
 
 ## 完整配置示例
 ### 免费热种
 ``` yaml
 tasks:
-  task_name:
+  my-free-task:
     rss: 
       url: https://www.example.com/rss.xml
       other_fields:
@@ -98,7 +101,7 @@ tasks:
 ### 热种
 ``` yaml
 tasks:
-  task_name:
+  my-hot-task:
     rss: 
       url: https://www.example.com/rss.xml
       other_fields:
@@ -109,6 +112,19 @@ tasks:
         min: 1
       leechers:
         min: 20
+    download: ~/flexget/torrents/
+```
+### 避免HR
+``` yaml
+tasks:
+  no-hr-task:
+    rss: 
+      url: https://www.example.com/rss.xml
+      other_fields:
+        - link
+    nexusphp:
+      cookie: 'you_cookie'
+      hr: no
     download: ~/flexget/torrents/
 ```
 
@@ -125,9 +141,12 @@ pip3 install flexget  # 使用pip3安装
 以下站点名使用别称或简称，欢迎反馈更多可用或不可用的站点
 - 任何未修改关键结构的nexusphp站点
 - 铂金家
-- 馒头
+- 馒头（站点安全性较高，使用flexget ip与登录ip不同时可能无法使用）
 - nice
 - 菠萝
 - OB
 - 天空
 - 学校
+
+#### 如何判断站点是否支持
+[判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
