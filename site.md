@@ -9,6 +9,7 @@ REJECTED: `XXX` by nexusphp plugin because none does not match discount
 请联系开发者并提供以下信息：
 - 站点名
 - Flexget相关输出日志
-- 站点关键HTML结构截图，只需要free信息附近的HTML代码
+- 站点关键HTML结构截图，只需要free信息附近的HTML代码，
+注意是详情页面的代码，而非列表里的
 
 `注意：提供信息时注意passkey`
