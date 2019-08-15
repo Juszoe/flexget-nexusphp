@@ -1,7 +1,6 @@
 # flexget-nexusphp
 Flexget插件，增强对NexusPHP的过滤
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
-- `注意：本插件为测试版，未经过完全的测试`
 - [站点支持列表](#site)
 
 ## 运行环境
@@ -74,7 +73,9 @@ flexget execute
 #### `max_complete`
 小数，范围`0-1.0` 下载者中最大完成度，超过这个值将不下载，默认为1
 ### hr
-yes或no，是否下载HR，默认不考虑HR，即可能下载到HR
+`yes` 会下载HR，即不过滤HR<br>
+`no` 不下载HR<br>
+默认 yes
 
 ## 完整配置示例
 ### 免费热种

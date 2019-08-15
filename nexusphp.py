@@ -60,16 +60,17 @@ class NexusPHP(object):
         'required': ['cookie']
     }
 
-    def build_conifg(self, config):
+    @staticmethod
+    def build_config(config):
         config = dict(config)
         config.setdefault('discount', None)
         config.setdefault('seeders', {'min': 0, 'max': 100000})
         config.setdefault('leechers', {'min': 0, 'max': 100000, 'max_complete': 1})
-        config.setdefault('hr', None)
+        config.setdefault('hr', True)
         return config
 
     def on_task_filter(self, task, config):
-        config = self.build_conifg(config)
+        config = self.build_config(config)
 
         adapter = HTTPAdapter(max_retries=5)
         task.requests.mount('http://', adapter)
@@ -87,9 +88,8 @@ class NexusPHP(object):
                     _entry.reject('%s does not match discount' % discount)  # 优惠信息不匹配
                     return
 
-            if config['hr'] is not None:
-                if hr != config['hr']:
-                    _entry.reject('hr is %s' % hr)  # HR信息不匹配
+            if config['hr'] is False and hr:
+                _entry.reject('it is HR')  # 拒绝HR
 
             if len(seeders) not in range(seeder_min, seeder_max + 1):
                 _entry.reject('%d is out of range of seeder' % len(seeders))  # 做种人数不匹配
@@ -126,7 +126,6 @@ class NexusPHP(object):
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
     def info_from_page(detail_page, peer_page, discount_fn=None, hr_fn=None):
-        soup = get_soup(detail_page.content, 'html.parser')
         try:
             if discount_fn is None:
                 def discount_fn(page):
@@ -150,9 +149,7 @@ class NexusPHP(object):
             if hr_fn:
                 hr = hr_fn(detail_page)
             else:
-                # selector: '#top > img'
-                hr_class = soup.find('h1', id='top').img['class'][0]
-                hr = (hr_class == 'hitandrun')
+                hr = ('hitandrun' in detail_page.text)
         except Exception:
             hr = False  # 无HR
 
