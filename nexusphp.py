@@ -55,7 +55,18 @@ class NexusPHP(object):
                     'max_complete': {'type': 'number', 'minimum': 0, 'maximum': 1, 'default': 1}
                 }
             },
-            'hr': {'type': 'boolean'}
+            'hr': {'type': 'boolean'},
+            'adapter': {
+                'type': 'object',
+                'properties': {
+                    'free': {'type': 'string', 'default': 'free'},
+                    '2x': {'type': 'string', 'default': 'twoup'},
+                    '2xfree': {'type': 'string', 'default': 'twoupfree'},
+                    '30%': {'type': 'string', 'default': 'thirtypercent'},
+                    '50%': {'type': 'string', 'default': 'halfdown'},
+                    '2x50%': {'type': 'string', 'default': 'twouphalfdown'}
+                }
+            }
         },
         'required': ['cookie']
     }
@@ -67,6 +78,7 @@ class NexusPHP(object):
         config.setdefault('seeders', {'min': 0, 'max': 100000})
         config.setdefault('leechers', {'min': 0, 'max': 100000, 'max_complete': 1})
         config.setdefault('hr', True)
+        config.setdefault('adaptor', None)
         return config
 
     def on_task_filter(self, task, config):
@@ -77,7 +89,7 @@ class NexusPHP(object):
         task.requests.mount('https://', adapter)
 
         def consider_entry(_entry, _link):
-            discount, seeders, leechers, hr = NexusPHP._get_info(task, _link, config['cookie'])
+            discount, seeders, leechers, hr = NexusPHP._get_info(task, _link, config['cookie'], config['adapter'])
             seeder_max = config['seeders']['max']
             seeder_min = config['seeders']['min']
             leecher_max = config['leechers']['max']
@@ -125,22 +137,8 @@ class NexusPHP(object):
 
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
-    def info_from_page(detail_page, peer_page, discount_fn=None, hr_fn=None):
+    def info_from_page(detail_page, peer_page, discount_fn, hr_fn=None):
         try:
-            if discount_fn is None:
-                def discount_fn(page):
-                    convert = {
-                        'free': 'free',
-                        'twoup': '2x',
-                        'twoupfree': '2xfree',
-                        'thirtypercent': '30%',
-                        'halfdown': '50%',
-                        'twouphalfdown': '2x50%'
-                    }
-                    for key, value in convert.items():
-                        if key in page.text:
-                            return value
-                    return None
             discount = discount_fn(detail_page)
         except Exception:
             discount = None  # 无优惠
@@ -149,7 +147,11 @@ class NexusPHP(object):
             if hr_fn:
                 hr = hr_fn(detail_page)
             else:
-                hr = ('hitandrun' in detail_page.text)
+                hr = False
+                for item in ['hitandrun', 'hit_run.gif', 'Hit and Run', 'Hit & Run']:
+                    if item in detail_page.text:
+                        hr = True
+                        break
         except Exception:
             hr = False  # 无HR
 
@@ -204,7 +206,7 @@ class NexusPHP(object):
         return peers
 
     @staticmethod
-    def _get_info(task, link, cookie):
+    def _get_info(task, link, cookie, adapter):
         headers = {
             'cookie': cookie,
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -217,39 +219,61 @@ class NexusPHP(object):
         if 'login' in detail_page.url or 'login' in peer_page.url:
             raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
 
-        if 'chdbits' in link:
-            def discount_fn(page):
-                convert = {
-                    'pro_free': 'free',
-                    'pro_2up': '2x',
-                    'pro_free2up': '2xfree',
-                    'pro_30pctdown': '30%',
-                    'pro_50pctdown': '50%',
-                    'pro_50pctdown2up': '2x50%'
-                }
-                for key, value in convert.items():
-                    if key in page.text:
-                        return value
-                return None
+        if adapter:
+            convert = {value: key for key, value in adapter.items()}
+            discount_fn = NexusPHP.generate_discount_fn(convert)
             return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
-        if 'u2.dmhy' in link:
-            def discount_fn(page):
-                convert = {
-                    'pro_free': 'free',
-                    'pro_2up': '2x',
-                    'pro_free2up': '2xfree',
-                    'pro_30pctdown': '30%',
-                    'pro_50pctdown': '50%',
-                    'pro_50pctdown2up': '2x50%',
-                    'pro_custom': '2x'
-                }
-                for key, value in convert.items():
-                    if key in page.text:
-                        return value
-                return None
-            return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
-        else:
-            return NexusPHP.info_from_page(detail_page, peer_page)
+
+        sites_discount = {
+            'chdbits': {
+                'pro_free': 'free',
+                'pro_2up': '2x',
+                'pro_free2up': '2xfree',
+                'pro_30pctdown': '30%',
+                'pro_50pctdown': '50%',
+                'pro_50pctdown2up': '2x50%'
+            },
+            'u2.dmhy': {
+                'pro_free': 'free',
+                'pro_2up': '2x',
+                'pro_free2up': '2xfree',
+                'pro_30pctdown': '30%',
+                'pro_50pctdown': '50%',
+                'pro_50pctdown2up': '2x50%',
+                'pro_custom': '2x'
+            },
+            'yingk': {
+                'span_frees': 'free',
+                'span_twoupls': '2x',
+                'span_twoupfreels': '2xfree',
+                'span_thirtypercentls': '30%',
+                'span_halfdowns': '50%',
+                'span_twouphalfdownls': '2x50%'
+            }
+        }
+        for site, convert in sites_discount.items():
+            if site in link:
+                discount_fn = NexusPHP.generate_discount_fn(convert)
+                return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
+        discount_fn = NexusPHP.generate_discount_fn({
+            'free': 'free',
+            'twoup': '2x',
+            'twoupfree': '2xfree',
+            'thirtypercent': '30%',
+            'halfdown': '50%',
+            'twouphalfdown': '2x50%'
+        })
+        return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
+
+    @staticmethod
+    def generate_discount_fn(convert):
+        def fn(page):
+            for key, value in convert.items():
+                if key in page.text:
+                    return value
+            return None
+
+        return fn
 
 
 @event('plugin.register')

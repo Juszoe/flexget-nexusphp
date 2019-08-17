@@ -19,7 +19,7 @@ C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 
 ## 使用
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
-``` yaml
+```yaml
 nexusphp:
   cookie: 'you_cookie'  # 必填
   discount:  # 优惠信息 选填
@@ -37,9 +37,16 @@ nexusphp:
     max: 100
     max_complete: 0.8
   hr: no  # 是否下载HR 选填
+  adapter:  # 站点适配器
+    free: free
+    2x: twoup
+    2xfree: twoupfree
+    30%: thirtypercent
+    50%: halfdown
+    2x50%: twouphalfdown
 ```
 2. 为rss的other_fields字段添加link属性
-``` yaml
+```yaml
 rss: 
   url: https://www.example.com/rss.xml
   other_fields:
@@ -79,7 +86,7 @@ flexget execute
 
 ## 完整配置示例
 ### 免费热种
-``` yaml
+```yaml
 tasks:
   my-free-task:
     rss: 
@@ -100,7 +107,7 @@ tasks:
     download: ~/flexget/torrents/
 ```
 ### 热种
-``` yaml
+```yaml
 tasks:
   my-hot-task:
     rss: 
@@ -116,7 +123,7 @@ tasks:
     download: ~/flexget/torrents/
 ```
 ### 避免HR
-``` yaml
+```yaml
 tasks:
   no-hr-task:
     rss: 
