@@ -66,7 +66,8 @@ class NexusPHP(object):
                     '50%': {'type': 'string', 'default': 'halfdown'},
                     '2x50%': {'type': 'string', 'default': 'twouphalfdown'}
                 }
-            }
+            },
+            'comment': {'type': 'boolean'}
         },
         'required': ['cookie']
     }
@@ -78,8 +79,16 @@ class NexusPHP(object):
         config.setdefault('seeders', {'min': 0, 'max': 100000})
         config.setdefault('leechers', {'min': 0, 'max': 100000, 'max_complete': 1})
         config.setdefault('hr', True)
-        config.setdefault('adaptor', None)
+        config.setdefault('adapter', None)
         return config
+
+    @plugin.priority(127)
+    def on_task_modify(self, task, config):
+        if config.get('comment', False):
+            for entry in task.entries:
+                if 'torrent' in entry and 'link' in entry:
+                    entry['torrent'].content['comment'] = entry['link']
+                    entry['torrent'].modified = True
 
     def on_task_filter(self, task, config):
         config = self.build_config(config)

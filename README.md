@@ -44,6 +44,7 @@ nexusphp:
     30%: thirtypercent
     50%: halfdown
     2x50%: twouphalfdown
+  comment: no  # 在torrent注释中添加详情链接
 ```
 2. 为rss的other_fields字段添加link属性
 ```yaml
@@ -83,6 +84,9 @@ flexget execute
 `yes` 会下载HR，即不过滤HR<br>
 `no` 不下载HR<br>
 默认 yes
+### comment
+`yes` 在torrent注释中添加详情链接，方便查看<br>
+`no` 默认不添加<br>
 
 ## 完整配置示例
 ### 免费热种
