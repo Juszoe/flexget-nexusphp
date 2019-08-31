@@ -4,8 +4,8 @@ Flexget插件，增强对NexusPHP的过滤
 - [站点支持列表](#site)
 
 ## 运行环境
-- 已安装flexget
-- python 3.X [python2解决方案](#py2)
+- 已安装Flexget
+- Python 3.X 或 Python 2.7 [其他版本解决方案](#version)
 
 ## 安装插件
 1. 下载插件 [nexusphp.py](https://github.com/Juszoe/flexget-nexusphp/releases)
@@ -37,14 +37,15 @@ nexusphp:
     max: 100
     max_complete: 0.8
   hr: no  # 是否下载HR 选填
-  adapter:  # 站点适配器
+  adapter:  # 站点适配器，自行适配站点，参考最下方常见问题 选填
     free: free
     2x: twoup
     2xfree: twoupfree
     30%: thirtypercent
     50%: halfdown
     2x50%: twouphalfdown
-  comment: no  # 在torrent注释中添加详情链接
+  comment: no  # 在torrent注释中添加详情链接 选填
+  user-agent: xxxxxx  # 浏览器标识 选填
 ```
 2. 为rss的other_fields字段添加link属性
 ```yaml
@@ -84,6 +85,9 @@ flexget execute
 `yes` 会下载HR，即不过滤HR<br>
 `no` 不下载HR<br>
 默认 yes
+### adapter
+站点适配器，站点不兼容时可自定义，具体参考
+[判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
 ### comment
 `yes` 在torrent注释中添加详情链接，方便查看<br>
 `no` 默认不添加<br>
@@ -142,8 +146,8 @@ tasks:
 
 ## 常见问题
 #### 我的python版本是2.X如何使用？
-<span id="py2"></span>
-本插件只支持python 3.X版本，请卸载flexget后使用python3重装
+<span id="version"></span>
+本插件只支持Python 3.X或Python 2.7版本，其他版本不可用，请卸载Flexget后使用Python3重装
 ```bash
 pip uninstall flexget  # 卸载
 pip3 install flexget  # 使用pip3安装
@@ -153,12 +157,26 @@ pip3 install flexget  # 使用pip3安装
 以下站点名使用别称或简称，欢迎反馈更多可用或不可用的站点
 - 任何未修改关键结构的nexusphp站点
 - 铂金家
-- 馒头（站点安全性较高，使用flexget ip与登录ip不同时可能无法使用）
+- 馒头（站点安全性较高，[ip或浏览器变动](#user-agent)可能无法访问）
 - nice
 - 菠萝
 - OB
 - 天空
 - 学校
+- 影客
+- U2
+- CHD
+- 北洋园
+- 春天
+- OpenCD
+- 北洋园
+- FRDS
+- 铂金梦
 
 #### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
+
+#### 确认cookie正确，还是提示 Can't access the site. Your cookie may be wrong!
+<span id="user-agent"></span>
+某些站点安全性要求较高，ip或浏览器变动时无法使用cookie访问，需要重新登录。<br>
+解决办法：设置 user-agent 参数与浏览器相同，查看浏览器user-agent的方法自行搜索，并保证登录ip与使用Flexget相同。

@@ -3,7 +3,8 @@ from __future__ import unicode_literals, division, absolute_import
 from builtins import *
 
 import concurrent.futures
-
+import re
+import logging
 from requests.adapters import HTTPAdapter
 
 from flexget import plugin
@@ -11,6 +12,8 @@ from flexget.config_schema import one_or_more
 from flexget.event import event
 from flexget.utils.soup import get_soup
 
+
+log = logging.getLogger('nexusphp')
 
 class NexusPHP(object):
     """
@@ -60,14 +63,15 @@ class NexusPHP(object):
                 'type': 'object',
                 'properties': {
                     'free': {'type': 'string', 'default': 'free'},
-                    '2x': {'type': 'string', 'default': 'twoup'},
+                    '2x': {'type': 'strging', 'default': 'twoup'},
                     '2xfree': {'type': 'string', 'default': 'twoupfree'},
                     '30%': {'type': 'string', 'default': 'thirtypercent'},
                     '50%': {'type': 'string', 'default': 'halfdown'},
                     '2x50%': {'type': 'string', 'default': 'twouphalfdown'}
                 }
             },
-            'comment': {'type': 'boolean'}
+            'comment': {'type': 'boolean'},
+            'user-agent': {'type': 'string'}
         },
         'required': ['cookie']
     }
@@ -80,6 +84,9 @@ class NexusPHP(object):
         config.setdefault('leechers', {'min': 0, 'max': 100000, 'max_complete': 1})
         config.setdefault('hr', True)
         config.setdefault('adapter', None)
+        config.setdefault('user-agent',
+                          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/75.0.3770.142 Safari/537.36')
         return config
 
     @plugin.priority(127)
@@ -98,7 +105,15 @@ class NexusPHP(object):
         task.requests.mount('https://', adapter)
 
         def consider_entry(_entry, _link):
-            discount, seeders, leechers, hr = NexusPHP._get_info(task, _link, config['cookie'], config['adapter'])
+            try:
+                discount, seeders, leechers, hr = NexusPHP._get_info(
+                    task, _link, config['cookie'], config['adapter'], config['user-agent'])
+            except plugin.PluginError as e:
+                raise e
+            except Exception as e:
+                log.info('NexusPHP._get_info: ', e)
+                return
+
             seeder_max = config['seeders']['max']
             seeder_min = config['seeders']['min']
             leecher_max = config['leechers']['max']
@@ -191,13 +206,13 @@ class NexusPHP(object):
                     tds = tr.find_all('td')
                     for i, td in enumerate(tds):
                         text = td.get_text()
-                        if text == '用户' or text == '用戶':
+                        if text in ['用户', '用戶', '会员/IP']:
                             name_index = i
-                        elif text == '可连接' or text == '可連接':
+                        elif text in ['可连接', '可連接', '公网']:
                             connectable_index = i
-                        elif text == '上传' or text == '上傳':
+                        elif text in ['上传', '上傳', '总上传']:
                             uploaded_index = i
-                        elif text == '下载' or text == '下載':
+                        elif text in ['下载', '下載', '本次下载']:
                             downloaded_index = i
                         elif text == '完成':
                             completed_index = i
@@ -211,19 +226,27 @@ class NexusPHP(object):
                         'completed': float(tds[completed_index].get_text().strip('%')) / 100
                     })
             except Exception:
-                pass
+                peers.append({
+                        'name': '',
+                        'connectable': False,
+                        'uploaded': '',
+                        'downloaded': '',
+                        'completed': 0
+                    })
         return peers
 
     @staticmethod
-    def _get_info(task, link, cookie, adapter):
+    def _get_info(task, link, cookie, adapter, user_agent):
         headers = {
             'cookie': cookie,
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/75.0.3770.142 Safari/537.36'
+            'user-agent': user_agent
         }
-        detail_page = task.requests.get(link, headers=headers, allow_redirects=False)  # 详情
-        peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
-        peer_page = task.requests.get(peer_url, headers=headers, allow_redirects=False)  # peer详情
+        detail_page = task.requests.get(link, headers=headers)  # 详情
+        if 'totheglory' in link:
+            peer_url = link
+        else:
+            peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
+        peer_page = task.requests.get(peer_url, headers=headers)  # peer详情
 
         if 'login' in detail_page.url or 'login' in peer_page.url:
             raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
@@ -235,12 +258,12 @@ class NexusPHP(object):
 
         sites_discount = {
             'chdbits': {
-                'pro_free': 'free',
-                'pro_2up': '2x',
-                'pro_free2up': '2xfree',
-                'pro_30pctdown': '30%',
-                'pro_50pctdown': '50%',
-                'pro_50pctdown2up': '2x50%'
+                'pro_free.*?</h1>': 'free',
+                'pro_2up.*?</h1>': '2x',
+                'pro_free2up.*?</h1>': '2xfree',
+                'pro_30pctdown.*?</h1>': '30%',
+                'pro_50pctdown.*?</h1>': '50%',
+                'pro_50pctdown2up.*?</h1>': '2x50%'
             },
             'u2.dmhy': {
                 'pro_free': 'free',
@@ -258,6 +281,19 @@ class NexusPHP(object):
                 'span_thirtypercentls': '30%',
                 'span_halfdowns': '50%',
                 'span_twouphalfdownls': '2x50%'
+            },
+            'totheglory': {
+                'pic/ico_free': 'free',
+                'pic/ico_30': '30%',
+                'pic/ico_half': '50%',
+            },
+            'hdchina': {
+                'pro_free.*?</h2>': 'free',
+                'pro_2up.*?</h2>': '2x',
+                'pro_free2up.*?</h2>': '2xfree',
+                'pro_30pctdown.*?</h2>': '30%',
+                'pro_50pctdown.*?</h2>': '50%',
+                'pro_50pctdown2up.*?</h2>': '2x50%'
             }
         }
         for site, convert in sites_discount.items():
@@ -265,12 +301,12 @@ class NexusPHP(object):
                 discount_fn = NexusPHP.generate_discount_fn(convert)
                 return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
         discount_fn = NexusPHP.generate_discount_fn({
-            'free': 'free',
-            'twoup': '2x',
-            'twoupfree': '2xfree',
-            'thirtypercent': '30%',
-            'halfdown': '50%',
-            'twouphalfdown': '2x50%'
+            'class=\'free\'.*?免费.*?</h1>': 'free',
+            'class=\'twoup\'.*?2X.*?</h1>': '2x',
+            'class=\'twoupfree\'.*?2X免费.*?</h1>': '2xfree',
+            'class=\'thirtypercent\'.*?30%.*?</h1>': '30%',
+            'class=\'halfdown\'.*?50%.*?</h1>': '50%',
+            'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
         })
         return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
 
@@ -278,7 +314,8 @@ class NexusPHP(object):
     def generate_discount_fn(convert):
         def fn(page):
             for key, value in convert.items():
-                if key in page.text:
+                match = re.search(key, page.text)
+                if match:
                     return value
             return None
 
