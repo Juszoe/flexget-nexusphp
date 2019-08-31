@@ -277,8 +277,15 @@ class NexusPHP(object):
     @staticmethod
     def generate_discount_fn(convert):
         def fn(page):
-            for key, value in convert.items():
+				'''
                 if key in page.text:
+                    return value
+                '''
+				# by csupxh 2019.08.31
+				# 仅匹配id为top节点的折扣信息，防止误匹配到该折扣信息的其它版本种子（种子详情页下面有一个'其它版本'表）
+                sp = get_soup(page.text)
+                top = sp.find(id='top')
+                if top is not None and key in top.decode():
                     return value
             return None
 
