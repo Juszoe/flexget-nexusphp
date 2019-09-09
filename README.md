@@ -169,7 +169,7 @@ pip3 install flexget  # 使用pip3安装
 - 北洋园
 - 春天
 - OpenCD
-- 北洋园
+- TTG
 - FRDS
 - 铂金梦
 

@@ -15,6 +15,7 @@ from flexget.utils.soup import get_soup
 
 log = logging.getLogger('nexusphp')
 
+
 class NexusPHP(object):
     """
     配置示例
@@ -157,7 +158,7 @@ class NexusPHP(object):
         for f in concurrent.futures.as_completed(futures):
             exception = f.exception()
             if isinstance(exception, plugin.PluginError):
-                raise exception
+                log.info(exception)
 
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
@@ -242,6 +243,7 @@ class NexusPHP(object):
             'user-agent': user_agent
         }
         detail_page = task.requests.get(link, headers=headers)  # 详情
+        detail_page.encoding = 'utf-8'
         if 'totheglory' in link:
             peer_url = link
         else:
@@ -266,13 +268,13 @@ class NexusPHP(object):
                 'pro_50pctdown2up.*?</h1>': '2x50%'
             },
             'u2.dmhy': {
-                'pro_free': 'free',
-                'pro_2up': '2x',
-                'pro_free2up': '2xfree',
-                'pro_30pctdown': '30%',
-                'pro_50pctdown': '50%',
-                'pro_50pctdown2up': '2x50%',
-                'pro_custom': '2x'
+                '<td.*?top.*?pro_free.*?优惠历史.*?</td>': 'free',
+                '<td.*?top.*?pro_2up.*?优惠历史.*?</td>': '2x',
+                '<td.*?top.*?pro_free2up.*?优惠历史.*?</td>': '2xfree',
+                '<td.*?top.*?pro_30pctdown.*?优惠历史.*?</td>': '30%',
+                '<td.*?top.*?pro_50pctdown.*?优惠历史.*?</td>': '50%',
+                '<td.*?top.*?pro_50pctdown2up.*?优惠历史.*?</td>': '2x50%',
+                '<td.*?top.*?pro_custom.*?优惠历史.*?</td>': '2x'
             },
             'yingk': {
                 'span_frees': 'free',
@@ -283,9 +285,9 @@ class NexusPHP(object):
                 'span_twouphalfdownls': '2x50%'
             },
             'totheglory': {
-                'pic/ico_free': 'free',
-                'pic/ico_30': '30%',
-                'pic/ico_half': '50%',
+                '本种子限时不计流量': 'free',
+                '本种子的下载流量计为实际流量的30%': '30%',
+                '本种子的下载流量会减半': '50%',
             },
             'hdchina': {
                 'pro_free.*?</h2>': 'free',
@@ -313,8 +315,9 @@ class NexusPHP(object):
     @staticmethod
     def generate_discount_fn(convert):
         def fn(page):
+            html = page.text.replace('\n', '')
             for key, value in convert.items():
-                match = re.search(key, page.text)
+                match = re.search(key, html)
                 if match:
                     return value
             return None
