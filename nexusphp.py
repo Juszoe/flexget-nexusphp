@@ -296,6 +296,10 @@ class NexusPHP(object):
                 'pro_30pctdown.*?</h2>': '30%',
                 'pro_50pctdown.*?</h2>': '50%',
                 'pro_50pctdown2up.*?</h2>': '2x50%'
+            },
+                'm-team': {
+                'class=\'free\'.*?免費.*?</h1>': 'free',
+            	'class=\'halfdown\'.*?50%.*?</h1>': '50%',
             }
         }
         for site, convert in sites_discount.items():
