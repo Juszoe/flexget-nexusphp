@@ -169,9 +169,10 @@ pip3 install flexget  # 使用pip3安装
 - 北洋园
 - 春天
 - OpenCD
-- TTG
+- TTG（不支持人数筛选）
 - FRDS
 - 铂金梦
+- 瓷器（不支持人数筛选）
 
 #### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)

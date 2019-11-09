@@ -105,6 +105,16 @@ class NexusPHP(object):
         task.requests.mount('http://', adapter)
         task.requests.mount('https://', adapter)
 
+        # 先访问一次 预防异常
+        headers = {
+            'cookie': config['cookie'],
+            'user-agent': config['user-agent']
+        }
+        try:
+            task.requests.get(task.entries[0].get('link'), headers=headers)
+        except:
+            pass
+
         def consider_entry(_entry, _link):
             try:
                 discount, seeders, leechers, hr = NexusPHP._get_info(
@@ -112,7 +122,7 @@ class NexusPHP(object):
             except plugin.PluginError as e:
                 raise e
             except Exception as e:
-                log.info('NexusPHP._get_info: ', e)
+                log.info('NexusPHP._get_info: ' + str(e))
                 return
 
             seeder_max = config['seeders']['max']
@@ -180,7 +190,7 @@ class NexusPHP(object):
         except Exception:
             hr = False  # 无HR
 
-        soup = get_soup(peer_page.content)
+        soup = get_soup(peer_page)
         tables = soup.find_all('table', limit=2)
         try:
             seeders = NexusPHP.get_peers(tables[0])
@@ -248,9 +258,12 @@ class NexusPHP(object):
             peer_url = link
         else:
             peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
-        peer_page = task.requests.get(peer_url, headers=headers)  # peer详情
+        try:
+            peer_page = task.requests.get(peer_url, headers=headers).text  # peer详情
+        except:
+            peer_page = ''
 
-        if 'login' in detail_page.url or 'login' in peer_page.url:
+        if 'login' in detail_page.url:
             raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
 
         if adapter:
@@ -303,9 +316,9 @@ class NexusPHP(object):
                 discount_fn = NexusPHP.generate_discount_fn(convert)
                 return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
         discount_fn = NexusPHP.generate_discount_fn({
-            'class=\'free\'.*?免费.*?</h1>': 'free',
+            'class=\'free\'.*?免.*?</h1>': 'free',
             'class=\'twoup\'.*?2X.*?</h1>': '2x',
-            'class=\'twoupfree\'.*?2X免费.*?</h1>': '2xfree',
+            'class=\'twoupfree\'.*?2X免.*?</h1>': '2xfree',
             'class=\'thirtypercent\'.*?30%.*?</h1>': '30%',
             'class=\'halfdown\'.*?50%.*?</h1>': '50%',
             'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
