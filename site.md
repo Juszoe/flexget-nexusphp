@@ -20,7 +20,7 @@ REJECTED: `XXX` by nexusphp plugin because none does not match discount
 2. 在配置文件添加适配选项adopter
 ```yaml
 nexusphp:
-    adopter:
+    adapter:
       free: free
       2x: twoup
       2xfree: twoupfree

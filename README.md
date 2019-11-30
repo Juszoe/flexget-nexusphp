@@ -19,9 +19,17 @@ C:\Users\<YOURUSER>\flexget\plugins\  # Windows
 
 ## 使用
 1. 编辑flexget配置文件，添加nexusphp选项，按照需要进行配置
+#### 简单配置
 ```yaml
 nexusphp:
-  cookie: 'you_cookie'  # 必填
+  cookie: 'a=xxx; b=xxx'  # 必填
+  discount:  # 优惠信息 选填
+    - free
+```
+#### 完整配置
+```yaml
+nexusphp:
+  cookie: 'a=xxx; b=xxx'  # 必填
   discount:  # 优惠信息 选填
     - free
     - 2x
@@ -102,7 +110,7 @@ tasks:
       other_fields:
         - link
     nexusphp:
-      cookie: 'you_cookie'
+      cookie: 'a=xxx; b=xxx'
       discount:
         - free
         - 2xfree
@@ -123,7 +131,7 @@ tasks:
       other_fields:
         - link
     nexusphp:
-      cookie: 'you_cookie'
+      cookie: 'a=xxx; b=xxx'
       seeders:
         min: 1
       leechers:
@@ -139,7 +147,7 @@ tasks:
       other_fields:
         - link
     nexusphp:
-      cookie: 'you_cookie'
+      cookie: 'a=xxx; b=xxx'
       hr: no
     download: ~/flexget/torrents/
 ```
