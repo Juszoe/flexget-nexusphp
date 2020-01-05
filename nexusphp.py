@@ -287,7 +287,7 @@ class NexusPHP(object):
                 '<td.*?top.*?pro_30pctdown.*?优惠历史.*?</td>': '30%',
                 '<td.*?top.*?pro_50pctdown.*?优惠历史.*?</td>': '50%',
                 '<td.*?top.*?pro_50pctdown2up.*?优惠历史.*?</td>': '2x50%',
-                '<td.*?top.*?pro_custom.*?优惠历史.*?</td>': '2x'
+                '<td.*?top.*?pro_custom.*?优惠历史.*?</td>': '2xfree'
             },
             'yingk': {
                 'span_frees': 'free',

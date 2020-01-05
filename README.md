@@ -58,7 +58,7 @@ nexusphp:
 2. 为rss的other_fields字段添加link属性
 ```yaml
 rss: 
-  url: https://www.example.com/rss.xml
+  url: https://www.example.com/rss
   other_fields:
     - link
 ```
@@ -171,7 +171,6 @@ pip3 install flexget  # 使用pip3安装
 - OB
 - 天空
 - 学校
-- 影客
 - U2
 - CHD
 - 北洋园
