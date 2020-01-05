@@ -64,7 +64,7 @@ class NexusPHP(object):
                 'type': 'object',
                 'properties': {
                     'free': {'type': 'string', 'default': 'free'},
-                    '2x': {'type': 'strging', 'default': 'twoup'},
+                    '2x': {'type': 'string', 'default': 'twoup'},
                     '2xfree': {'type': 'string', 'default': 'twoupfree'},
                     '30%': {'type': 'string', 'default': 'thirtypercent'},
                     '50%': {'type': 'string', 'default': 'halfdown'},
