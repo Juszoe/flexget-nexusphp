@@ -162,24 +162,21 @@ pip3 install flexget  # 使用pip3安装
 ```
 #### 目前支持哪些站点
 <span id="site"></span>
-以下站点名使用别称或简称，欢迎反馈更多可用或不可用的站点
 - 任何未修改关键结构的nexusphp站点
-- 铂金家
-- 馒头（站点安全性较高，[ip或浏览器变动](#user-agent)可能无法访问）
-- nice
-- 菠萝
+- PTH
+- MT（站点安全性较高，[ip或浏览器变动](#user-agent)可能无法访问）
 - OB
-- 天空
-- 学校
+- Sky
+- School
 - U2
 - CHD
-- 北洋园
-- 春天
+- TJU
+- SSD
 - OpenCD
 - TTG（不支持人数筛选）
 - FRDS
-- 铂金梦
-- 瓷器（不支持人数筛选）
+- Dream
+- HDC（禁止脚本，不兼容）
 
 #### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
