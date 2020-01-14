@@ -4,7 +4,7 @@ Flexget插件，增强对NexusPHP的过滤
 - [站点支持列表](#site)
 
 ## 运行环境
-- 已安装Flexget
+- [Flexget](https://flexget.com/)
 - Python 3.X 或 Python 2.7 [其他版本解决方案](#version)
 
 ## 安装插件
