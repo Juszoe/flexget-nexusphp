@@ -11,6 +11,7 @@ from flexget import plugin
 from flexget.config_schema import one_or_more
 from flexget.event import event
 from flexget.utils.soup import get_soup
+import heapq
 
 
 log = logging.getLogger('nexusphp')
@@ -117,8 +118,7 @@ class NexusPHP(object):
 
         def consider_entry(_entry, _link):
             try:
-                discount, seeders, leechers, hr = NexusPHP._get_info(
-                    task, _link, config['cookie'], config['adapter'], config['user-agent'])
+                discount, seeders, leechers, hr = NexusPHP._get_info(task, _link, config)
             except plugin.PluginError as e:
                 raise e
             except Exception as e:
@@ -132,18 +132,18 @@ class NexusPHP(object):
 
             if config['discount']:
                 if discount not in config['discount']:
-                    _entry.reject('%s does not match discount' % discount)  # 优惠信息不匹配
+                    _entry.reject('%s does not match discount' % discount, remember=True)  # 优惠信息不匹配
                     return
 
             if config['hr'] is False and hr:
-                _entry.reject('it is HR')  # 拒绝HR
+                _entry.reject('it is HR', remember=True)  # 拒绝HR
 
             if len(seeders) not in range(seeder_min, seeder_max + 1):
-                _entry.reject('%d is out of range of seeder' % len(seeders))  # 做种人数不匹配
+                _entry.reject('%d is out of range of seeder' % len(seeders), remember=True)  # 做种人数不匹配
                 return
 
             if len(leechers) not in range(leecher_min, leecher_max + 1):
-                _entry.reject('%d is out of range of leecher' % len(leechers))  # 下载人数不匹配
+                _entry.reject('%d is out of range of leecher' % len(leechers), remember=True)  # 下载人数不匹配
                 return
 
             if len(leechers) != 0:
@@ -151,14 +151,14 @@ class NexusPHP(object):
             else:
                 max_complete = 0
             if max_complete > config['leechers']['max_complete']:
-                _entry.reject('%f is more than max_complete' % max_complete)  # 最大完成度不匹配
+                _entry.reject('%f is more than max_complete' % max_complete, remember=True)  # 最大完成度不匹配
                 return
 
             _entry.accept()
 
         futures = []  # 线程任务
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            for entry in task.entries:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            for entry in heapq.merge(task.accepted, task.undecided):
                 link = entry.get('link')
                 if not link:
                     raise plugin.PluginError("The rss plugin require 'other_fields' which contain 'link'. "
@@ -247,27 +247,32 @@ class NexusPHP(object):
         return peers
 
     @staticmethod
-    def _get_info(task, link, cookie, adapter, user_agent):
+    def _get_info(task, link, config):
         headers = {
-            'cookie': cookie,
-            'user-agent': user_agent
+            'cookie': config['cookie'],
+            'user-agent': config['user-agent']
         }
-        detail_page = task.requests.get(link, headers=headers)  # 详情
+        detail_page = task.requests.get(link, headers=headers, timeout=20)  # 详情
         detail_page.encoding = 'utf-8'
-        if 'totheglory' in link:
-            peer_url = link
-        else:
+
+        def get_peer_page():
+            if 'totheglory' in link:
+                return ''
             peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
-        try:
-            peer_page = task.requests.get(peer_url, headers=headers).text  # peer详情
-        except:
-            peer_page = ''
+            try:
+                if config['seeders'] or config['leechers']:
+                    return task.requests.get(peer_url, headers=headers).text  # peer详情
+            except:
+                return ''
+            return ''
+
+        peer_page = get_peer_page()
 
         if 'login' in detail_page.url:
             raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
 
-        if adapter:
-            convert = {value: key for key, value in adapter.items()}
+        if config['adapter']:
+            convert = {value: key for key, value in config['adapter'].items()}
             discount_fn = NexusPHP.generate_discount_fn(convert)
             return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
 

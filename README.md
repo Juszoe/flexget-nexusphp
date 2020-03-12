@@ -1,7 +1,13 @@
 # flexget-nexusphp
-Flexget插件，增强对NexusPHP的过滤
+Flexget插件，增强对NexusPHP的过滤<br>
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - [站点支持列表](#site)
+
+## 免责声明
+本插件会爬取details.php页面，请将参数限制到合理的范围，减轻对服务器负担<br>
+本插件已尽量减轻服务器负担，因本插件造成账号封禁等损失，请自行承担后果<br>
+`建议：`将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
+如果不想对人数进行过滤，不建议设置seeders和leechers参数
 
 ## 运行环境
 - [Flexget](https://flexget.com/)
@@ -176,7 +182,7 @@ pip3 install flexget  # 使用pip3安装
 - TTG（不支持人数筛选）
 - FRDS
 - Dream
-- HDC（禁止脚本，不兼容）
+- HDC（禁止脚本，无法使用）
 
 #### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
