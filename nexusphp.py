@@ -11,7 +11,6 @@ from flexget import plugin
 from flexget.config_schema import one_or_more
 from flexget.event import event
 from flexget.utils.soup import get_soup
-import heapq
 
 
 log = logging.getLogger('nexusphp')
@@ -158,7 +157,7 @@ class NexusPHP(object):
 
         futures = []  # 线程任务
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            for entry in heapq.merge(task.accepted, task.undecided):
+            for entry in task.accepted + task.undecided:
                 link = entry.get('link')
                 if not link:
                     raise plugin.PluginError("The rss plugin require 'other_fields' which contain 'link'. "

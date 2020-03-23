@@ -6,8 +6,9 @@ Flexget插件，增强对NexusPHP的过滤<br>
 ## 免责声明
 本插件会爬取details.php页面，请将参数限制到合理的范围，减轻对服务器负担<br>
 本插件已尽量减轻服务器负担，因本插件造成账号封禁等损失，请自行承担后果<br>
-`建议：`将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
-如果不想对人数进行过滤，不建议设置seeders和leechers参数
+`建议` 将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
+如果不想对人数进行过滤，不建议设置seeders和leechers参数。<br>
+TJU已禁止使用爬虫/机器人访问/爬取，请使用官方提供的RSS免费种功能。
 
 ## 运行环境
 - [Flexget](https://flexget.com/)
@@ -168,6 +169,7 @@ pip3 install flexget  # 使用pip3安装
 ```
 #### 目前支持哪些站点
 <span id="site"></span>
+如果站点禁止使用脚本爬虫，应立即停止使用本插件
 - 任何未修改关键结构的nexusphp站点
 - PTH
 - MT（站点安全性较高，[ip或浏览器变动](#user-agent)可能无法访问）
@@ -176,7 +178,7 @@ pip3 install flexget  # 使用pip3安装
 - School
 - U2
 - CHD
-- TJU
+- TJU（禁止脚本，请勿使用）
 - SSD
 - OpenCD
 - TTG（不支持人数筛选）
