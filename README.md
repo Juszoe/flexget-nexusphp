@@ -61,6 +61,7 @@ nexusphp:
     2x50%: twouphalfdown
   comment: no  # 在torrent注释中添加详情链接 选填
   user-agent: xxxxxx  # 浏览器标识 选填
+  remember: yes  # 记住优惠信息 选填 请勿随意设置
 ```
 2. 为rss的other_fields字段添加link属性
 ```yaml
@@ -106,6 +107,11 @@ flexget execute
 ### comment
 `yes` 在torrent注释中添加详情链接，方便查看<br>
 `no` 默认不添加<br>
+### user-agent
+浏览器标识
+### remember
+记住优惠信息，不建议设置为 no，因为会增大站点压力<br>
+默认 yes
 
 ## 完整配置示例
 ### 免费热种

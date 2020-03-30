@@ -72,7 +72,8 @@ class NexusPHP(object):
                 }
             },
             'comment': {'type': 'boolean'},
-            'user-agent': {'type': 'string'}
+            'user-agent': {'type': 'string'},
+            'remember': {'type': 'boolean', 'default': True}
         },
         'required': ['cookie']
     }
@@ -128,10 +129,11 @@ class NexusPHP(object):
             seeder_min = config['seeders']['min']
             leecher_max = config['leechers']['max']
             leecher_min = config['leechers']['min']
+            remember = config['remember']
 
             if config['discount']:
                 if discount not in config['discount']:
-                    _entry.reject('%s does not match discount' % discount, remember=True)  # 优惠信息不匹配
+                    _entry.reject('%s does not match discount' % discount, remember=remember)  # 优惠信息不匹配
                     return
 
             if config['hr'] is False and hr:
