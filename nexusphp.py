@@ -193,12 +193,19 @@ class NexusPHP(object):
 
         soup = get_soup(peer_page)
         tables = soup.find_all('table', limit=2)
+        # 判定是否存在做种者
         try:
-            seeders = NexusPHP.get_peers(tables[0])
+            if len(tables) == 1:
+                seeders = []
+            else:
+                seeders = NexusPHP.get_peers(tables[0])
         except IndexError:
             seeders = []
         try:
-            leechers = NexusPHP.get_peers(tables[1])
+            if len(tables) == 1:
+                leechers = NexusPHP.get_peers(tables[0])
+            else:
+                leechers = NexusPHP.get_peers(tables[1])
         except IndexError:
             leechers = []
 
