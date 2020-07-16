@@ -1,17 +1,21 @@
 # coding=utf-8
 from __future__ import unicode_literals, division, absolute_import
+
+import time
 from builtins import *
 
 import concurrent.futures
 import re
 import logging
+from datetime import datetime
+
 from requests.adapters import HTTPAdapter
 
 from flexget import plugin
 from flexget.config_schema import one_or_more
 from flexget.event import event
 from flexget.utils.soup import get_soup
-
+from flexget.utils.tools import parse_timedelta
 
 log = logging.getLogger('nexusphp')
 
@@ -59,6 +63,7 @@ class NexusPHP(object):
                     'max_complete': {'type': 'number', 'minimum': 0, 'maximum': 1, 'default': 1}
                 }
             },
+            'left-time': {'type': 'string', 'format': 'interval'},
             'hr': {'type': 'boolean'},
             'adapter': {
                 'type': 'object',
@@ -82,8 +87,9 @@ class NexusPHP(object):
     def build_config(config):
         config = dict(config)
         config.setdefault('discount', None)
-        config.setdefault('seeders', {'min': 0, 'max': 100000})
-        config.setdefault('leechers', {'min': 0, 'max': 100000, 'max_complete': 1})
+        config.setdefault('seeders', None)
+        config.setdefault('leechers', None)
+        config.setdefault('left-time', None)
         config.setdefault('hr', True)
         config.setdefault('adapter', None)
         config.setdefault('user-agent',
@@ -113,22 +119,18 @@ class NexusPHP(object):
         }
         try:
             task.requests.get(task.entries[0].get('link'), headers=headers)
-        except:
+        except Exception:
             pass
 
         def consider_entry(_entry, _link):
             try:
-                discount, seeders, leechers, hr = NexusPHP._get_info(task, _link, config)
+                discount, seeders, leechers, hr, expired_time = NexusPHP._get_info(task, _link, config)
             except plugin.PluginError as e:
                 raise e
             except Exception as e:
                 log.info('NexusPHP._get_info: ' + str(e))
                 return
 
-            seeder_max = config['seeders']['max']
-            seeder_min = config['seeders']['min']
-            leecher_max = config['leechers']['max']
-            leecher_min = config['leechers']['min']
             remember = config['remember']
 
             if config['discount']:
@@ -136,24 +138,37 @@ class NexusPHP(object):
                     _entry.reject('%s does not match discount' % discount, remember=remember)  # 优惠信息不匹配
                     return
 
+            if config['left-time'] and expired_time:
+                left_time = expired_time - datetime.now()
+                # 实际剩余时间 < 'left-time'
+                if left_time < parse_timedelta(config['left-time']):
+                    _entry.reject('its discount time only left [%s]' % left_time, remember=remember)  # 剩余时间不足
+                    return
+
             if config['hr'] is False and hr:
                 _entry.reject('it is HR', remember=True)  # 拒绝HR
 
-            if len(seeders) not in range(seeder_min, seeder_max + 1):
-                _entry.reject('%d is out of range of seeder' % len(seeders), remember=True)  # 做种人数不匹配
-                return
+            if config['seeders']:
+                seeder_max = config['seeders']['max']
+                seeder_min = config['seeders']['min']
+                if len(seeders) not in range(seeder_min, seeder_max + 1):
+                    _entry.reject('%d is out of range of seeder' % len(seeders), remember=True)  # 做种人数不匹配
+                    return
 
-            if len(leechers) not in range(leecher_min, leecher_max + 1):
-                _entry.reject('%d is out of range of leecher' % len(leechers), remember=True)  # 下载人数不匹配
-                return
+            if config['leechers']:
+                leecher_max = config['leechers']['max']
+                leecher_min = config['leechers']['min']
+                if len(leechers) not in range(leecher_min, leecher_max + 1):
+                    _entry.reject('%d is out of range of leecher' % len(leechers), remember=True)  # 下载人数不匹配
+                    return
 
-            if len(leechers) != 0:
-                max_complete = max(leechers, key=lambda x: x['completed'])['completed']
-            else:
-                max_complete = 0
-            if max_complete > config['leechers']['max_complete']:
-                _entry.reject('%f is more than max_complete' % max_complete, remember=True)  # 最大完成度不匹配
-                return
+                if len(leechers) != 0:
+                    max_complete = max(leechers, key=lambda x: x['completed'])['completed']
+                else:
+                    max_complete = 0
+                if max_complete > config['leechers']['max_complete']:
+                    _entry.reject('%f is more than max_complete' % max_complete, remember=True)  # 最大完成度不匹配
+                    return
 
             _entry.accept()
 
@@ -165,19 +180,20 @@ class NexusPHP(object):
                     raise plugin.PluginError("The rss plugin require 'other_fields' which contain 'link'. "
                                              "For example: other_fields: - link")
                 futures.append(executor.submit(consider_entry, entry, link))
+                time.sleep(0.5)
 
         for f in concurrent.futures.as_completed(futures):
             exception = f.exception()
             if isinstance(exception, plugin.PluginError):
-                log.info(exception)
+                log.error(exception)
 
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
     def info_from_page(detail_page, peer_page, discount_fn, hr_fn=None):
         try:
-            discount = discount_fn(detail_page)
+            discount, expired_time = discount_fn(detail_page)
         except Exception:
-            discount = None  # 无优惠
+            discount = expired_time = None  # 无优惠
 
         try:
             if hr_fn:
@@ -191,18 +207,21 @@ class NexusPHP(object):
         except Exception:
             hr = False  # 无HR
 
-        soup = get_soup(peer_page)
+        soup = get_soup(peer_page.replace('\n', ''), 'html5lib')
+        seeders = leechers = []
         tables = soup.find_all('table', limit=2)
-        try:
+        if len(tables) == 2:                                     # 1. seeder leecher 均有
             seeders = NexusPHP.get_peers(tables[0])
-        except IndexError:
-            seeders = []
-        try:
             leechers = NexusPHP.get_peers(tables[1])
-        except IndexError:
-            leechers = []
-
-        return discount, seeders, leechers, hr
+        elif len(tables) == 1 and len(soup.body.contents) == 3:  # 2. seeder leecher 有其一
+            nodes = soup.body.contents
+            if nodes[1].name == 'table':                    # 2.1 只有seeder 在第二个节点
+                seeders = NexusPHP.get_peers(nodes[1])
+            else:                                           # 2.2 只有leecher 在第三个节点
+                leechers = NexusPHP.get_peers(nodes[2])
+        else:                                                    # 3. seeder leecher 均无
+            seeders = leechers = []
+        return discount, seeders, leechers, hr, expired_time
 
     @staticmethod
     def get_peers(table):
@@ -261,15 +280,15 @@ class NexusPHP(object):
                 return ''
             peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
             try:
-                if config['seeders'] or config['leechers']:
+                if config['seeders'] or config['leechers']:  # 配置了seeders、leechers才请求
                     return task.requests.get(peer_url, headers=headers).text  # peer详情
-            except:
+            except Exception:
                 return ''
             return ''
 
         peer_page = get_peer_page()
 
-        if 'login' in detail_page.url:
+        if 'login' in detail_page.url or 'portal.php' in detail_page.url:
             raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
 
         if config['adapter']:
@@ -287,26 +306,18 @@ class NexusPHP(object):
                 'pro_50pctdown2up.*?</h1>': '2x50%'
             },
             'u2.dmhy': {
-                '<td.*?top.*?pro_free.*?优惠历史.*?</td>': 'free',
-                '<td.*?top.*?pro_2up.*?优惠历史.*?</td>': '2x',
-                '<td.*?top.*?pro_free2up.*?优惠历史.*?</td>': '2xfree',
-                '<td.*?top.*?pro_30pctdown.*?优惠历史.*?</td>': '30%',
-                '<td.*?top.*?pro_50pctdown.*?优惠历史.*?</td>': '50%',
-                '<td.*?top.*?pro_50pctdown2up.*?优惠历史.*?</td>': '2x50%',
-                '<td.*?top.*?pro_custom.*?优惠历史.*?</td>': '2xfree'
-            },
-            'yingk': {
-                'span_frees': 'free',
-                'span_twoupls': '2x',
-                'span_twoupfreels': '2xfree',
-                'span_thirtypercentls': '30%',
-                'span_halfdowns': '50%',
-                'span_twouphalfdownls': '2x50%'
+                'class=.pro_free.*?promotion.*?</td>': 'free',
+                'class=.pro_2up.*?promotion.*?</td>': '2x',
+                'class=.pro_free2up.*?promotion.*?</td>': '2xfree',
+                'class=.pro_30pctdown.*?promotion.*?</td>': '30%',
+                'class=.pro_50pctdown.*?promotion.*?</td>': '50%',
+                'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
+                'class=.pro_custom.*?promotion.*?</td>': '2xfree'
             },
             'totheglory': {
-                '本种子限时不计流量': 'free',
-                '本种子的下载流量计为实际流量的30%': '30%',
-                '本种子的下载流量会减半': '50%',
+                '本种子限时不计流量.*?</font>': 'free',
+                '本种子的下载流量计为实际流量的30%.*?</font>': '30%',
+                '本种子的下载流量会减半.*?</font>': '50%',
             },
             'hdchina': {
                 'pro_free.*?</h2>': 'free',
@@ -338,8 +349,15 @@ class NexusPHP(object):
             for key, value in convert.items():
                 match = re.search(key, html)
                 if match:
-                    return value
-            return None
+                    discount_str = match.group(0)
+                    expired_time = None
+                    # 匹配优惠剩余时间
+                    match = re.search('(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_str)
+                    if match:
+                        expired_time_str = match.group(0)
+                        expired_time = datetime.strptime(expired_time_str, "%Y-%m-%d %H:%M:%S")
+                    return value, expired_time
+            return None, None
 
         return fn
 

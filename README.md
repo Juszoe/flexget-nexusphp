@@ -2,13 +2,14 @@
 Flexget插件，增强对NexusPHP的过滤<br>
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - [站点支持列表](#site)
+---
+更多插件：[IO过高时停止任务插件](https://github.com/Juszoe/flexget-limiter)
 
 ## 免责声明
 本插件会爬取details.php页面，请将参数限制到合理的范围，减轻对服务器负担<br>
 本插件已尽量减轻服务器负担，因本插件造成账号封禁等损失，请自行承担后果<br>
 `建议` 将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
 如果不想对人数进行过滤，不建议设置seeders和leechers参数。<br>
-TJU已禁止使用爬虫/机器人访问/爬取，请使用官方提供的RSS免费种功能。
 
 ## 运行环境
 - [Flexget](https://flexget.com/)
@@ -51,6 +52,7 @@ nexusphp:
     min: 10
     max: 100
     max_complete: 0.8
+  left-time: 1 hours  # 优惠剩余时间 选填
   hr: no  # 是否下载HR 选填
   adapter:  # 站点适配器，自行适配站点，参考最下方常见问题 选填
     free: free
@@ -97,6 +99,11 @@ flexget execute
 数字，最大下载人数，默认不限制
 #### `max_complete`
 小数，范围`0-1.0` 下载者中最大完成度，超过这个值将不下载，默认为1
+### left-time
+时间字符串，例如 `3 hours`、`10 minutes`、`1 days`。
+最小剩余时间，当实际剩余时间小于设置的值，则不下载。
+例如设置`1 hours`，优惠剩余59分钟，那么就不下载。
+默认不限制
 ### hr
 `yes` 会下载HR，即不过滤HR<br>
 `no` 不下载HR<br>
@@ -199,3 +206,7 @@ pip3 install flexget  # 使用pip3安装
 <span id="user-agent"></span>
 某些站点安全性要求较高，ip或浏览器变动时无法使用cookie访问，需要重新登录。<br>
 解决办法：设置 user-agent 参数与浏览器相同，查看浏览器user-agent的方法自行搜索，并保证登录ip与使用Flexget相同。
+
+## 支持作者
+如果本插件对你有用，可以请作者吃顿饭😉
+![wechatcode.png](https://i.loli.net/2020/07/16/O4dYvAWIt1BUJQu.png)
