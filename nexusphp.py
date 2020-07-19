@@ -312,7 +312,7 @@ class NexusPHP(object):
                 'class=.pro_30pctdown.*?promotion.*?</td>': '30%',
                 'class=.pro_50pctdown.*?promotion.*?</td>': '50%',
                 'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
-                'class=.pro_custom.*?promotion.*?</td>': '2xfree'
+                'class=.pro_custom.*?0\.00X.*?promotion.*?</td>': '2xfree'
             },
             'totheglory': {
                 '本种子限时不计流量.*?</font>': 'free',
