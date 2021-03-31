@@ -272,6 +272,8 @@ class NexusPHP(object):
             'cookie': config['cookie'],
             'user-agent': config['user-agent']
         }
+        if 'open.cd' in link:
+            link = link.replace('details.php', 'plugin_details.php')
         detail_page = task.requests.get(link, headers=headers, timeout=20)  # 详情
         detail_page.encoding = 'utf-8'
 
@@ -326,6 +328,14 @@ class NexusPHP(object):
                 'pro_30pctdown.*?</h2>': '30%',
                 'pro_50pctdown.*?</h2>': '50%',
                 'pro_50pctdown2up.*?</h2>': '2x50%'
+            },
+            'open.cd': {
+                'pro_free': 'free',
+                'pro_2up': '2x',
+                'pro_free2up': '2xfree',
+                'pro_30pctdown': '30%',
+                'pro_50pctdown': '50%',
+                'pro_50pctdown2up': '2x50%'
             }
         }
         for site, convert in sites_discount.items():
