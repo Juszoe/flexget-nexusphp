@@ -308,9 +308,9 @@ class NexusPHP(object):
                 'pro_50pctdown2up.*?</h1>': '2x50%'
             },
             'u2.dmhy': {
-                'class=.pro_free.*?promotion.*?</td>': 'free',
                 'class=.pro_2up.*?promotion.*?</td>': '2x',
                 'class=.pro_free2up.*?promotion.*?</td>': '2xfree',
+                'class=.pro_free.*?promotion.*?</td>': 'free',
                 'class=.pro_30pctdown.*?promotion.*?</td>': '30%',
                 'class=.pro_50pctdown.*?promotion.*?</td>': '50%',
                 'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
