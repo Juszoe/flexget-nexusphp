@@ -219,4 +219,4 @@ pip3 install flexget  # 使用pip3安装
 如果本插件对你有用，可以请作者吃顿饭😉<br>
 **ETH(Huobi):** `0x052456027321217bf10186704979bd7ac5fbc44d`<br>
 **ETH:** `0x82e3ed7C4cDAabf3A98342AB4C0273C3f49EeE4D`<br>
-![wechatpay.png](https://i.loli.net/2021/05/16/tcMuX4wiHnf9Db5.png)
+<img width="559" alt="wechatpay" src="https://user-images.githubusercontent.com/47920609/118388150-3c97f880-b655-11eb-8801-0c2df3a0b966.png">
