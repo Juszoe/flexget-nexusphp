@@ -8,7 +8,7 @@ Flexget插件，增强对NexusPHP的过滤<br>
 ## 免责声明
 本插件会爬取details.php页面，请将参数限制到合理的范围，减轻对服务器负担<br>
 本插件已尽量减轻服务器负担，因本插件造成账号封禁等损失，请自行承担后果<br>
-`建议` 将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
+**建议** 将RSS条目限制在20条以内，将Flexget运行频率设置在10分钟以上。
 如果不想对人数进行过滤，不建议设置seeders和leechers参数。<br>
 
 ## 运行环境
@@ -21,6 +21,13 @@ Flexget插件，增强对NexusPHP的过滤<br>
 ```
 ~/.flexget/plugins/  # Linux
 C:\Users\<YOURUSER>\flexget\plugins\  # Windows
+```
+再次注意`plugins`文件夹和`config.yml`处在同一级目录下，例如：
+```
+/.flxget
+  ┕━config.yml
+  ┕━plugins
+    ┕━nexusphp.py
 ```
 3. 将插件拷贝至plugins
 4. 若启用了Web-UI或守护进程，则重启flexget重新加载配置
@@ -74,6 +81,8 @@ rss:
 3. 启动flexget
 ``` bash
 flexget execute
+# 如果仅仅想要测试而不下载，可以添加 --test 参数
+flexget --test execute
 ```
 
 ## 详细配置
@@ -207,5 +216,7 @@ pip3 install flexget  # 使用pip3安装
 解决办法：设置 user-agent 参数与浏览器相同，查看浏览器user-agent的方法自行搜索，并保证登录ip与使用Flexget相同。
 
 ## 支持作者
-如果本插件对你有用，可以请作者吃顿饭😉
-![wechatcode.png](https://i.loli.net/2020/07/16/O4dYvAWIt1BUJQu.png)
+如果本插件对你有用，可以请作者吃顿饭😉<br>
+**ETH(Huobi):** `0x052456027321217bf10186704979bd7ac5fbc44d`<br>
+**ETH:** `0x82e3ed7C4cDAabf3A98342AB4C0273C3f49EeE4D`<br>
+![wechatpay.png](https://i.loli.net/2021/05/16/tcMuX4wiHnf9Db5.png)
