@@ -86,47 +86,33 @@ flexget --test execute
 ```
 
 ## 详细配置
-- ### cookie
-网站cookie，必须填写
-- ### discount
-优惠类型，默认不限制优惠类型。
-列表类型，Flexget会只下载含有列表内优惠类型的种子。
-有效值：`free 2x 2x50% 2xfree 50% 30%`
+- `cookie` **网站cookie** 必须填写
+- `discount` **优惠类型** 默认不限制优惠类型。<br>
+列表类型，Flexget会只下载含有列表内优惠类型的种子。<br>
+有效值：`free 2x 2x50% 2xfree 50% 30%`<br>
 `注意：x为英文字母`
-- ### seeders
-做种情况，包含字段`min` `max`。做种人数超出范围的，Flexget将不会下载
-#### `min`
-数字，最小做种人数，默认不限制
-#### `max`
-数字，最大做种人数，默认不限制
-- ### leechers
-下载情况，包含字段`min` `max` `max_complete`。下载人数超出范围的，Flexget将不会下载
-#### `min`
-数字，最小下载人数，默认不限制
-#### `max`
-数字，最大下载人数，默认不限制
-#### `max_complete`
-小数，范围`0-1.0` 下载者中最大完成度，超过这个值将不下载，默认为1
-- ### left-time
+- `seeders` **做种情况** 做种人数超出范围的，Flexget将不会下载
+  - `min` 最小做种人数。整数，默认不限制
+  - `max` 最大做种人数。整数，默认不限制
+- `leechers` **下载情况** 下载人数超出范围的，Flexget将不会下载
+  - `min` 最小下载人数。整数，默认不限制
+  - `max` 最大下载人数。整数，默认不限制
+- `max_complete` **下载者中最大完成度** 超过这个值将不下载。
+小数，范围`0-1.0`，默认为1
+- `left-time` **最小剩余时间** 当实际剩余时间小于设置的值，则不下载。
 时间字符串，例如 `3 hours`、`10 minutes`、`1 days`。
-最小剩余时间，当实际剩余时间小于设置的值，则不下载。
-例如设置`1 hours`，优惠剩余59分钟，那么就不下载。
-默认不限制
-- ### hr
-`yes` 会下载HR，即不过滤HR<br>
-`no` 不下载HR<br>
-默认 yes
-- ### adapter
-站点适配器，站点不兼容时可自定义，具体参考
+例如设置`1 hours`，优惠剩余59分钟，那么就不下载。默认不限制
+- `hr` **是否下载HR种** 默认 yes<br>
+  1. `yes` 会下载HR，即不过滤HR<br>
+  2. `no` 不下载HR<br>
+- `adapter` **站点适配器** 站点不兼容时可自定义，具体参考
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
-- ### comment
-`yes` 在torrent注释中添加详情链接，方便查看<br>
-`no` 默认不添加<br>
-- ### user-agent
-浏览器标识
-- ### remember
-记住优惠信息，不建议设置为 no，因为会增大站点压力<br>
-默认 yes
+- `comment` **在torrent注释中添加详情链接**<br>
+  1. `yes` 在torrent注释中添加详情链接，方便在BT客户端查看<br>
+  2. `no` 默认值<br>
+- `user-agent` **浏览器标识** 默认为Google浏览器
+- `remember` **记住优惠信息** 不建议设置为 no，因为会增大站点压力。默认 yes
+
 
 ## 完整配置示例
 ### 免费热种
