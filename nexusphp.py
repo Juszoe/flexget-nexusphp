@@ -189,7 +189,7 @@ class NexusPHP(object):
 
     @staticmethod
     # 解析页面，获取优惠、做种者信息、下载者信息
-    def info_from_page(detail_page, peer_page, discount_fn, hr_fn=None):
+    def info_from_page(detail_page, peer_page, discount_fn, hr_fn):
         try:
             discount, expired_time = discount_fn(detail_page)
         except Exception:
@@ -288,6 +288,14 @@ class NexusPHP(object):
                 return ''
             return ''
 
+        hr_fn = None
+        if 'chdbits' in link:
+            def chd_hr_fn(_page):
+                if '<b>H&R' in _page.text:
+                    return True
+                return False
+            hr_fn = chd_hr_fn
+
         peer_page = get_peer_page()
 
         if 'login' in detail_page.url or 'portal.php' in detail_page.url:
@@ -296,7 +304,7 @@ class NexusPHP(object):
         if config['adapter']:
             convert = {value: key for key, value in config['adapter'].items()}
             discount_fn = NexusPHP.generate_discount_fn(convert)
-            return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
+            return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
 
         sites_discount = {
             'chdbits': {
@@ -341,7 +349,7 @@ class NexusPHP(object):
         for site, convert in sites_discount.items():
             if site in link:
                 discount_fn = NexusPHP.generate_discount_fn(convert)
-                return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
+                return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
         discount_fn = NexusPHP.generate_discount_fn({
             'class=\'free\'.*?免.*?</h1>': 'free',
             'class=\'twoup\'.*?2X.*?</h1>': '2x',
@@ -350,7 +358,7 @@ class NexusPHP(object):
             'class=\'halfdown\'.*?50%.*?</h1>': '50%',
             'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
         })
-        return NexusPHP.info_from_page(detail_page, peer_page, discount_fn)
+        return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
 
     @staticmethod
     def generate_discount_fn(convert):
