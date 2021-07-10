@@ -2,6 +2,7 @@
 Flexget插件，增强对NexusPHP的过滤<br>
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - [站点支持列表](#site)
+- [支持作者](#donate) **插件维护离不开大家的支持**
 ---
 更多插件：[IO过高时停止任务插件](https://github.com/Juszoe/flexget-limiter)
 
@@ -201,8 +202,26 @@ pip3 install flexget  # 使用pip3安装
 某些站点安全性要求较高，ip或浏览器变动时无法使用cookie访问，需要重新登录。<br>
 解决办法：设置 user-agent 参数与浏览器相同，查看浏览器user-agent的方法自行搜索，并保证登录ip与使用Flexget相同。
 
+#### 站点启用了Cloudflare五秒盾无法获取信息
+当触发Cloudflare五秒盾通常有以下提示：
+```
+NexusPHP._get_info: 503 Server Error: Service Temporarily Unavailable for url
+```
+解决方案也很简单，可以考虑使用Flexget官方内置的插件[cfscraper](https://flexget.com/Plugins/cfscraper)
+1. 首先需要安装依赖
+``` bash
+pip install cloudscraper
+```
+2. 然后启用
+``` yaml
+cfscraper: yes
+```
+**注意！绕过站点安全机制可能有风险，自行决定是否使用**
+
+
 ## 支持作者
-如果本插件对你有用，可以请作者吃顿饭😉<br>
+<span id="donate"></span>
+插件经常需要时间维护，如果本插件对你有用，可以请作者吃顿饭😉，给作者提供更多动力<br>
 **ETH(Huobi):** `0x052456027321217bf10186704979bd7ac5fbc44d`<br>
 **ETH:** `0x82e3ed7C4cDAabf3A98342AB4C0273C3f49EeE4D`<br>
 <img width="559" alt="wechatpay" src="https://user-images.githubusercontent.com/47920609/118388150-3c97f880-b655-11eb-8801-0c2df3a0b966.png">
