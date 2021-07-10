@@ -168,14 +168,14 @@ tasks:
 ```
 
 ## 常见问题
-#### 我的python版本是2.X如何使用？
+### 我的python版本是2.X如何使用？
 <span id="version"></span>
 本插件只支持Python 3.X或Python 2.7版本，其他版本不可用，请卸载Flexget后使用Python3重装
 ```bash
 pip uninstall flexget  # 卸载
 pip3 install flexget  # 使用pip3安装
 ```
-#### 目前支持哪些站点
+### 目前支持哪些站点
 <span id="site"></span>
 如果站点禁止使用脚本爬虫，应立即停止使用本插件
 - 任何未修改关键结构的nexusphp站点
@@ -194,15 +194,15 @@ pip3 install flexget  # 使用pip3安装
 - Dream
 - HDC（禁止脚本，无法使用）
 
-#### 如何判断站点是否支持
+### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
 
-#### 确认cookie正确，还是提示 Can't access the site. Your cookie may be wrong!
+### 确认cookie正确，还是提示 Can't access the site. Your cookie may be wrong!
 <span id="user-agent"></span>
 某些站点安全性要求较高，ip或浏览器变动时无法使用cookie访问，需要重新登录。<br>
 解决办法：设置 user-agent 参数与浏览器相同，查看浏览器user-agent的方法自行搜索，并保证登录ip与使用Flexget相同。
 
-#### 站点启用了Cloudflare五秒盾无法获取信息
+### 站点启用了Cloudflare五秒盾无法获取信息
 当触发Cloudflare五秒盾通常有以下提示：
 ```
 NexusPHP._get_info: 503 Server Error: Service Temporarily Unavailable for url
