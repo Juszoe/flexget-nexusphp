@@ -280,7 +280,13 @@ class NexusPHP(object):
         def get_peer_page():
             if 'totheglory' in link:
                 return ''
-            peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
+            if 'lemonhd' in link:
+                # https://lemonhd.org/details_movie.php?id=xxx
+                # https://lemonhd.org/details_music.php?id=xxx
+                # ...
+                peer_url = re.sub('details_\w+.php', 'viewpeerlist.php', link, 1)
+            else:
+                peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
             try:
                 if config['seeders'] or config['leechers']:  # 配置了seeders、leechers才请求
                     return task.requests.get(peer_url, headers=headers).text  # peer详情

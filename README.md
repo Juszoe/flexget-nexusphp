@@ -75,7 +75,7 @@ nexusphp:
 ```
 2. 为rss的other_fields字段添加link属性
 ```yaml
-rss: 
+rss:
   url: https://www.example.com/rss
   other_fields: [link]
 ```
@@ -120,7 +120,7 @@ flexget --test execute
 ```yaml
 tasks:
   my-free-task:
-    rss: 
+    rss:
       url: https://www.example.com/rss.xml
       other_fields:
         - link
@@ -141,7 +141,7 @@ tasks:
 ```yaml
 tasks:
   my-hot-task:
-    rss: 
+    rss:
       url: https://www.example.com/rss.xml
       other_fields:
         - link
@@ -157,7 +157,7 @@ tasks:
 ```yaml
 tasks:
   no-hr-task:
-    rss: 
+    rss:
       url: https://www.example.com/rss.xml
       other_fields:
         - link
@@ -193,6 +193,7 @@ pip3 install flexget  # 使用pip3安装
 - FRDS
 - Dream
 - HDC（禁止脚本，无法使用）
+- LemonHD
 
 ### 如何判断站点是否支持
 [判断站点以及适配站点](https://github.com/Juszoe/flexget-nexusphp/blob/master/site.md)
