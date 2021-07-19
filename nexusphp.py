@@ -284,7 +284,7 @@ class NexusPHP(object):
                 # https://lemonhd.org/details_movie.php?id=xxx
                 # https://lemonhd.org/details_music.php?id=xxx
                 # ...
-                peer_url = re.sub('details_\w+.php', 'viewpeerlist.php', link, 1)
+                peer_url = re.sub(r'details_\w+.php', 'viewpeerlist.php', link, 1)
             else:
                 peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
             try:
