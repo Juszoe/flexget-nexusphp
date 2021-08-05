@@ -314,20 +314,20 @@ class NexusPHP(object):
 
         sites_discount = {
             'chdbits': {
+                'pro_free2up.*?</h1>': '2xfree',
                 'pro_free.*?</h1>': 'free',
                 'pro_2up.*?</h1>': '2x',
-                'pro_free2up.*?</h1>': '2xfree',
+                'pro_50pctdown2up.*?</h1>': '2x50%',
                 'pro_30pctdown.*?</h1>': '30%',
-                'pro_50pctdown.*?</h1>': '50%',
-                'pro_50pctdown2up.*?</h1>': '2x50%'
+                'pro_50pctdown.*?</h1>': '50%'
             },
             'u2.dmhy': {
                 'class=.pro_2up.*?promotion.*?</td>': '2x',
                 'class=.pro_free2up.*?promotion.*?</td>': '2xfree',
                 'class=.pro_free.*?promotion.*?</td>': 'free',
+                'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
                 'class=.pro_30pctdown.*?promotion.*?</td>': '30%',
                 'class=.pro_50pctdown.*?promotion.*?</td>': '50%',
-                'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
                 'class=.pro_custom.*?0\.00X.*?promotion.*?</td>': '2xfree'
             },
             'totheglory': {
@@ -335,27 +335,16 @@ class NexusPHP(object):
                 '本种子的下载流量计为实际流量的30%.*?</font>': '30%',
                 '本种子的下载流量会减半.*?</font>': '50%',
             },
-            'hdchina': {
-                'pro_free.*?</h2>': 'free',
-                'pro_2up.*?</h2>': '2x',
-                'pro_free2up.*?</h2>': '2xfree',
-                'pro_30pctdown.*?</h2>': '30%',
-                'pro_50pctdown.*?</h2>': '50%',
-                'pro_50pctdown2up.*?</h2>': '2x50%'
-            },
             'open.cd': {
+                'pro_free2up': '2xfree',
                 'pro_free': 'free',
                 'pro_2up': '2x',
-                'pro_free2up': '2xfree',
+                'pro_50pctdown2up': '2x50%',
                 'pro_30pctdown': '30%',
-                'pro_50pctdown': '50%',
-                'pro_50pctdown2up': '2x50%'
+                'pro_50pctdown': '50%'
             }
         }
-        for site, convert in sites_discount.items():
-            if site in link:
-                discount_fn = NexusPHP.generate_discount_fn(convert)
-                return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
+
         discount_fn = NexusPHP.generate_discount_fn({
             'class=\'free\'.*?免.*?</h1>': 'free',
             'class=\'twoup\'.*?2X.*?</h1>': '2x',
@@ -364,7 +353,78 @@ class NexusPHP(object):
             'class=\'halfdown\'.*?50%.*?</h1>': '50%',
             'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
         })
-        return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
+        for site, convert in sites_discount.items():
+            if site in link:
+                discount_fn = NexusPHP.generate_discount_fn(convert)
+                break
+
+        discount, seeders, leechers, hr, expired_time = NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
+
+        if 'hdchina' in link:
+            discount, expired_time = NexusPHP.get_discount_from_hdchina(detail_page.text, task, config)
+
+        print(discount, expired_time)
+        return discount, seeders, leechers, hr, expired_time
+
+    @staticmethod
+    def get_discount_from_hdchina(details_page, task, config):
+        soup = get_soup(details_page, 'html5lib')
+        csrf = soup.find('meta', attrs={'name': 'x-csrf'})['content']
+        # TODO: it is better if we can get the torrent id from the context
+        torrent_id = str(soup.find('div', class_='details_box').find('span', class_='sp_state_placeholder')['id'])
+
+        headers = {
+            'cookie': config['cookie'],
+            'user-agent': config['user-agent']
+        }
+
+        res = task.requests.post('https://hdchina.org/ajax_promotion.php', data={
+            'ids[]': torrent_id,
+            'csrf': csrf,
+        }, headers=headers, timeout=10)
+
+        """ sample response
+        {
+            'status': 200,
+            'message': {
+                '530584': {
+                    'sp_state': '<p style="display: none"> <img class="pro_free" src="pic/trans.gif" alt="Free" onmouseover="domTT_activate(this, event, \'content\', \'<b><font class=&quot;free&quot;>免费</font></b>',
+                    'timeout': ''
+                }
+            }
+        }
+        """
+        if res.status_code != 200:
+            return None, None
+
+        res = res.json()
+        if res['status'] != 200:
+            return None, None
+
+        discount_info = res['message'][torrent_id]
+        if 'sp_state' not in discount_info or not discount_info['sp_state']:
+            return None, None
+
+        expired_time = None
+        match = re.search('(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_info['timeout'])
+        if match:
+            expired_time_str = match.group(0)
+            expired_time = datetime.strptime(expired_time_str, "%Y-%m-%d %H:%M:%S")
+
+        discount_mapping = {
+            'class="pro_free2up"': '2xfree',
+            'class="pro_free"': 'free',
+            'class="pro_2up"': '2x',
+            'class="pro_50pctdown2up"': '2x50%',
+            'class="pro_30pctdown"': '30%',
+            'class="pro_50pctdown"': '50%'
+        }
+
+        for key, value in discount_mapping.items():
+            if key in discount_info['sp_state']:
+                return value, expired_time
+
+        return None, None
 
     @staticmethod
     def generate_discount_fn(convert):
