@@ -192,7 +192,7 @@ pip3 install flexget  # 使用pip3安装
 - TTG（不支持人数筛选）
 - FRDS
 - Dream
-- HDC（禁止脚本，无法使用）
+- HDC
 - LemonHD
 
 ### 如何判断站点是否支持

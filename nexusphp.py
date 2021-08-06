@@ -215,9 +215,9 @@ class NexusPHP(object):
             leechers = NexusPHP.get_peers(tables[1])
         elif len(tables) == 1 and len(soup.body.contents) == 3:  # 2. seeder leecher 有其一
             nodes = soup.body.contents
-            if nodes[1].name == 'table':                    # 2.1 只有seeder 在第二个节点
+            if nodes[1].name == 'table':                         # 2.1 只有seeder 在第二个节点
                 seeders = NexusPHP.get_peers(nodes[1])
-            else:                                           # 2.2 只有leecher 在第三个节点
+            else:                                                # 2.2 只有leecher 在第三个节点
                 leechers = NexusPHP.get_peers(nodes[2])
         else:                                                    # 3. seeder leecher 均无
             seeders = leechers = []
@@ -258,12 +258,12 @@ class NexusPHP(object):
                     })
             except Exception:
                 peers.append({
-                        'name': '',
-                        'connectable': False,
-                        'uploaded': '',
-                        'downloaded': '',
-                        'completed': 0
-                    })
+                    'name': '',
+                    'connectable': False,
+                    'uploaded': '',
+                    'downloaded': '',
+                    'completed': 0
+                })
         return peers
 
     @staticmethod
@@ -300,6 +300,7 @@ class NexusPHP(object):
                 if '<b>H&R' in _page.text:
                     return True
                 return False
+
             hr_fn = chd_hr_fn
 
         peer_page = get_peer_page()
@@ -328,7 +329,7 @@ class NexusPHP(object):
                 'class=.pro_50pctdown2up.*?promotion.*?</td>': '2x50%',
                 'class=.pro_30pctdown.*?promotion.*?</td>': '30%',
                 'class=.pro_50pctdown.*?promotion.*?</td>': '50%',
-                'class=.pro_custom.*?0\.00X.*?promotion.*?</td>': '2xfree'
+                r'class=.pro_custom.*?0\.00X.*?promotion.*?</td>': '2xfree'
             },
             'totheglory': {
                 '本种子限时不计流量.*?</font>': 'free',
@@ -358,19 +359,18 @@ class NexusPHP(object):
                 discount_fn = NexusPHP.generate_discount_fn(convert)
                 break
 
-        discount, seeders, leechers, hr, expired_time = NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
+        discount, seeders, leechers, hr, expired_time = \
+            NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
 
         if 'hdchina' in link:
             discount, expired_time = NexusPHP.get_discount_from_hdchina(detail_page.text, task, config)
 
-        print(discount, expired_time)
         return discount, seeders, leechers, hr, expired_time
 
     @staticmethod
     def get_discount_from_hdchina(details_page, task, config):
         soup = get_soup(details_page, 'html5lib')
         csrf = soup.find('meta', attrs={'name': 'x-csrf'})['content']
-        # TODO: it is better if we can get the torrent id from the context
         torrent_id = str(soup.find('div', class_='details_box').find('span', class_='sp_state_placeholder')['id'])
 
         headers = {
@@ -406,7 +406,7 @@ class NexusPHP(object):
             return None, None
 
         expired_time = None
-        match = re.search('(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_info['timeout'])
+        match = re.search(r'(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_info['timeout'])
         if match:
             expired_time_str = match.group(0)
             expired_time = datetime.strptime(expired_time_str, "%Y-%m-%d %H:%M:%S")
@@ -436,7 +436,7 @@ class NexusPHP(object):
                     discount_str = match.group(0)
                     expired_time = None
                     # 匹配优惠剩余时间
-                    match = re.search('(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_str)
+                    match = re.search(r'(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_str)
                     if match:
                         expired_time_str = match.group(0)
                         expired_time = datetime.strptime(expired_time_str, "%Y-%m-%d %H:%M:%S")
