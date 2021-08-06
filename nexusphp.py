@@ -111,14 +111,14 @@ class NexusPHP(object):
         adapter = HTTPAdapter(max_retries=5)
         task.requests.mount('http://', adapter)
         task.requests.mount('https://', adapter)
-
-        # 先访问一次 预防异常
-        headers = {
+        task.requests.headers.update({
             'cookie': config['cookie'],
             'user-agent': config['user-agent']
-        }
+        })
+
+        # 先访问一次 预防异常
         try:
-            task.requests.get(task.entries[0].get('link'), headers=headers)
+            task.requests.get(task.entries[0].get('link'))
         except Exception:
             pass
 
@@ -134,6 +134,7 @@ class NexusPHP(object):
             remember = config['remember']
 
             if config['discount']:
+                log.info("discount:%s", discount)
                 if discount not in config['discount']:
                     _entry.reject('%s does not match discount' % discount, remember=remember)  # 优惠信息不匹配
                     return
@@ -210,16 +211,21 @@ class NexusPHP(object):
         soup = get_soup(peer_page.replace('\n', ''), 'html5lib')
         seeders = leechers = []
         tables = soup.find_all('table', limit=2)
-        if len(tables) == 2:                                     # 1. seeder leecher 均有
+        if len(tables) == 2:
+            # 1. seeder leecher 均有
             seeders = NexusPHP.get_peers(tables[0])
             leechers = NexusPHP.get_peers(tables[1])
-        elif len(tables) == 1 and len(soup.body.contents) == 3:  # 2. seeder leecher 有其一
+        elif len(tables) == 1 and len(soup.body.contents) == 3:
+            # 2. seeder leecher 有其一
             nodes = soup.body.contents
-            if nodes[1].name == 'table':                         # 2.1 只有seeder 在第二个节点
+            if nodes[1].name == 'table':
+                # 2.1 只有seeder 在第二个节点
                 seeders = NexusPHP.get_peers(nodes[1])
-            else:                                                # 2.2 只有leecher 在第三个节点
+            else:
+                # 2.2 只有leecher 在第三个节点
                 leechers = NexusPHP.get_peers(nodes[2])
-        else:                                                    # 3. seeder leecher 均无
+        else:
+            # 3. seeder leecher 均无
             seeders = leechers = []
         return discount, seeders, leechers, hr, expired_time
 
@@ -268,15 +274,15 @@ class NexusPHP(object):
 
     @staticmethod
     def _get_info(task, link, config):
-        headers = {
-            'cookie': config['cookie'],
-            'user-agent': config['user-agent']
-        }
         if 'open.cd' in link:
             link = link.replace('details.php', 'plugin_details.php')
-        detail_page = task.requests.get(link, headers=headers, timeout=20)  # 详情
+        detail_page = task.requests.get(link, timeout=20)  # 详情
         detail_page.encoding = 'utf-8'
 
+        if 'login' in detail_page.url or 'portal.php' in detail_page.url:
+            raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
+
+        # 1. peer page
         def get_peer_page():
             if 'totheglory' in link:
                 return ''
@@ -289,11 +295,14 @@ class NexusPHP(object):
                 peer_url = link.replace('details.php', 'viewpeerlist.php', 1)
             try:
                 if config['seeders'] or config['leechers']:  # 配置了seeders、leechers才请求
-                    return task.requests.get(peer_url, headers=headers).text  # peer详情
+                    return task.requests.get(peer_url).text  # peer详情
             except Exception:
                 return ''
             return ''
 
+        peer_page = get_peer_page()
+
+        # 2. HR
         hr_fn = None
         if 'chdbits' in link:
             def chd_hr_fn(_page):
@@ -303,16 +312,7 @@ class NexusPHP(object):
 
             hr_fn = chd_hr_fn
 
-        peer_page = get_peer_page()
-
-        if 'login' in detail_page.url or 'portal.php' in detail_page.url:
-            raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
-
-        if config['adapter']:
-            convert = {value: key for key, value in config['adapter'].items()}
-            discount_fn = NexusPHP.generate_discount_fn(convert)
-            return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
-
+        # 3. discount
         sites_discount = {
             'chdbits': {
                 'pro_free2up.*?</h1>': '2xfree',
@@ -359,29 +359,28 @@ class NexusPHP(object):
                 discount_fn = NexusPHP.generate_discount_fn(convert)
                 break
 
-        discount, seeders, leechers, hr, expired_time = \
-            NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
-
         if 'hdchina' in link:
-            discount, expired_time = NexusPHP.get_discount_from_hdchina(detail_page.text, task, config)
+            def _(page):
+                return NexusPHP.get_discount_from_hdchina(page, task)
 
-        return discount, seeders, leechers, hr, expired_time
+            discount_fn = _
+
+        if config['adapter']:
+            convert = {value: key for key, value in config['adapter'].items()}
+            discount_fn = NexusPHP.generate_discount_fn(convert)
+
+        return NexusPHP.info_from_page(detail_page, peer_page, discount_fn, hr_fn)
 
     @staticmethod
-    def get_discount_from_hdchina(details_page, task, config):
-        soup = get_soup(details_page, 'html5lib')
+    def get_discount_from_hdchina(details_page, task):
+        soup = get_soup(details_page.text, 'html5lib')
         csrf = soup.find('meta', attrs={'name': 'x-csrf'})['content']
         torrent_id = str(soup.find('div', class_='details_box').find('span', class_='sp_state_placeholder')['id'])
-
-        headers = {
-            'cookie': config['cookie'],
-            'user-agent': config['user-agent']
-        }
 
         res = task.requests.post('https://hdchina.org/ajax_promotion.php', data={
             'ids[]': torrent_id,
             'csrf': csrf,
-        }, headers=headers, timeout=10)
+        }, timeout=10)
 
         """ sample response
         {
