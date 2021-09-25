@@ -2,7 +2,7 @@
 Flexget插件，增强对NexusPHP的过滤<br>
 过滤条件包括种子优惠信息（free等）、做种者情况、下载者情况
 - [站点支持列表](#site)
-- [支持作者](#donate) **插件维护离不开大家的支持**
+- [支持作者](#donate)
 ---
 更多插件：[IO过高时停止任务插件](https://github.com/Juszoe/flexget-limiter)
 
@@ -223,6 +223,4 @@ cfscraper: yes
 ## 支持作者
 <span id="donate"></span>
 插件经常需要时间维护，如果本插件对你有用，可以请作者吃顿饭😉，给作者提供更多动力<br>
-**ETH(Huobi):** `0x052456027321217bf10186704979bd7ac5fbc44d`<br>
-**ETH:** `0x82e3ed7C4cDAabf3A98342AB4C0273C3f49EeE4D`<br>
 <img width="559" alt="wechatpay" src="https://user-images.githubusercontent.com/47920609/118388150-3c97f880-b655-11eb-8801-0c2df3a0b966.png">
