@@ -134,7 +134,6 @@ class NexusPHP(object):
             remember = config['remember']
 
             if config['discount']:
-                log.info("discount:%s", discount)
                 if discount not in config['discount']:
                     _entry.reject('%s does not match discount' % discount, remember=remember)  # 优惠信息不匹配
                     return
@@ -193,6 +192,8 @@ class NexusPHP(object):
     def info_from_page(detail_page, peer_page, discount_fn, hr_fn):
         try:
             discount, expired_time = discount_fn(detail_page)
+        except plugin.PluginError as e:
+            raise e
         except Exception:
             discount = expired_time = None  # 无优惠
 
@@ -205,6 +206,8 @@ class NexusPHP(object):
                     if item in detail_page.text:
                         hr = True
                         break
+        except plugin.PluginError as e:
+            raise e
         except Exception:
             hr = False  # 无HR
 
@@ -403,6 +406,11 @@ class NexusPHP(object):
         discount_info = res['message'][torrent_id]
         if 'sp_state' not in discount_info or not discount_info['sp_state']:
             return None, None
+        if '<p style="display: none">' in discount_info['sp_state']:
+            # HDC cookie 仅部分错误时会直接返回free
+            # 同时带有特征 <p style="display: none">
+            # 也许是站点的BUG
+            raise plugin.PluginError("Can't access the site. Your cookie may be wrong!")
 
         expired_time = None
         match = re.search(r'(\d{4})(-\d{1,2}){2}\s\d{1,2}(:\d{1,2}){2}', discount_info['timeout'])

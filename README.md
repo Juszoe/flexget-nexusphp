@@ -53,10 +53,10 @@ nexusphp:
     - 2xfree
     - 50%
     - 30%
-  seeders:  # 做种情况 选填
+  seeders:  # 做种情况 选填（兼容性较差不建议使用）
     min: 1
     max: 2
-  leechers:  # 下载情况 选填
+  leechers:  # 下载情况 选填（兼容性较差不建议使用）
     min: 10
     max: 100
     max_complete: 0.8
@@ -93,9 +93,11 @@ flexget --test execute
 有效值：`free 2x 2x50% 2xfree 50% 30%`<br>
 `注意：x为英文字母`
 - `seeders` **做种情况** 做种人数超出范围的，Flexget将不会下载
+  - `注意：此选项兼容性较差`
   - `min` 最小做种人数。整数，默认不限制
   - `max` 最大做种人数。整数，默认不限制
 - `leechers` **下载情况** 下载人数超出范围的，Flexget将不会下载
+  - `注意：此选项兼容性较差`
   - `min` 最小下载人数。整数，默认不限制
   - `max` 最大下载人数。整数，默认不限制
 - `max_complete` **下载者中最大完成度** 超过这个值将不下载。
@@ -129,12 +131,6 @@ tasks:
       discount:
         - free
         - 2xfree
-      seeders:
-        min: 1
-        max: 3
-      leechers:
-        min: 5
-        max_complete: 0.5
     download: ~/flexget/torrents/
 ```
 ### 热种
