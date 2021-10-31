@@ -47,7 +47,7 @@ class NexusPHP(object):
         'type': 'object',
         'properties': {
             'cookie': {'type': 'string'},
-            'discount': one_or_more({'type': 'string', 'enum': ['free', '2x', '2xfree', '30%', '50%', '2x50%']}),
+            'discount': one_or_more({'type': 'string', 'enum': ['free', '2x', '2xfree', '30%', '50%', '2x50%', 'Neutral']}),
             'seeders': {
                 'type': 'object',
                 'properties': {
@@ -73,7 +73,8 @@ class NexusPHP(object):
                     '2xfree': {'type': 'string', 'default': 'twoupfree'},
                     '30%': {'type': 'string', 'default': 'thirtypercent'},
                     '50%': {'type': 'string', 'default': 'halfdown'},
-                    '2x50%': {'type': 'string', 'default': 'twouphalfdown'}
+                    '2x50%': {'type': 'string', 'default': 'twouphalfdown'},
+                    'Neutral': {'type': 'string', 'default': 'nl'}
                 }
             },
             'comment': {'type': 'boolean'},
@@ -355,7 +356,8 @@ class NexusPHP(object):
             'class=\'twoupfree\'.*?2X免.*?</h1>': '2xfree',
             'class=\'thirtypercent\'.*?30%.*?</h1>': '30%',
             'class=\'halfdown\'.*?50%.*?</h1>': '50%',
-            'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
+            'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%',
+            'class=\'nl\'.*?中性.*?</h1>': 'Neutral',
         })
         for site, convert in sites_discount.items():
             if site in link:
