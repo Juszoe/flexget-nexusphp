@@ -47,7 +47,7 @@ class NexusPHP(object):
         'type': 'object',
         'properties': {
             'cookie': {'type': 'string'},
-            'discount': one_or_more({'type': 'string', 'enum': ['free', '2x', '2xfree', '30%', '50%', '2x50%']}),
+            'discount': one_or_more({'type': 'string', 'enum': ['free', '2x', '2xfree', '30%', '50%', '2x50%', 'Neutral']}),
             'seeders': {
                 'type': 'object',
                 'properties': {
@@ -73,7 +73,8 @@ class NexusPHP(object):
                     '2xfree': {'type': 'string', 'default': 'twoupfree'},
                     '30%': {'type': 'string', 'default': 'thirtypercent'},
                     '50%': {'type': 'string', 'default': 'halfdown'},
-                    '2x50%': {'type': 'string', 'default': 'twouphalfdown'}
+                    '2x50%': {'type': 'string', 'default': 'twouphalfdown'},
+                    'Neutral': {'type': 'string', 'default': 'nl'}
                 }
             },
             'comment': {'type': 'boolean'},
@@ -93,8 +94,8 @@ class NexusPHP(object):
         config.setdefault('hr', True)
         config.setdefault('adapter', None)
         config.setdefault('user-agent',
-                          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/75.0.3770.142 Safari/537.36')
+                          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko)'
+                          'Chrome/89.0.4389.72 Safari/537.36 Edg/89.0.774.45')
         return config
 
     @plugin.priority(127)
@@ -355,7 +356,8 @@ class NexusPHP(object):
             'class=\'twoupfree\'.*?2X免.*?</h1>': '2xfree',
             'class=\'thirtypercent\'.*?30%.*?</h1>': '30%',
             'class=\'halfdown\'.*?50%.*?</h1>': '50%',
-            'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%'
+            'class=\'twouphalfdown\'.*?2X 50%.*?</h1>': '2x50%',
+            'class=\'nl\'.*?中性.*?</h1>': 'Neutral',
         })
         for site, convert in sites_discount.items():
             if site in link:
