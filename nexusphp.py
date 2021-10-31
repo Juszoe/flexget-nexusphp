@@ -94,8 +94,8 @@ class NexusPHP(object):
         config.setdefault('hr', True)
         config.setdefault('adapter', None)
         config.setdefault('user-agent',
-                          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko)'
-                          'Chrome/89.0.4389.72 Safari/537.36 Edg/89.0.774.45')
+                          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/75.0.3770.142 Safari/537.36')
         return config
 
     @plugin.priority(127)
